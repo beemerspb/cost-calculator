@@ -275,20 +275,21 @@
 </head>
 <body>
 <h2>
-  
-  Калькулятор себестоимости продуктов
+  <span class="material-icons-outlined">calculate</span>
+  Калькулятор себестоимости
 </h2>
 
 <div class="form-container">
   <div class="form-group">
     <label for="recipeName">
-      
+      <span class="material-icons-outlined">title</span>
       Название рецепта:
     </label>
     <input type="text" id="recipeName" class="required" placeholder="Введите название рецепта" required>
   </div>
 </div>
 
+<!-- Основная таблица продуктов -->
 <div class="table-container">
   <table id="costTable">
     <thead>
@@ -302,13 +303,79 @@
       </tr>
     </thead>
     <tbody></tbody>
-    <tfoot>
-      <tr id="totalRow">
-        <td colspan="4"><strong>Итого:</strong></td>
-        <td id="totalCost">0.00</td>
-        <td></td>
+  </table>
+</div>
+
+<!-- Таблица штучного товара -->
+<div class="table-container">
+  <table id="pieceGoodsTable">
+    <thead>
+      <tr>
+        <th><span class="material-icons-outlined">inventory_2</span> Штучный товар</th>
+        <th><span class="material-icons-outlined">numbers</span> Количество</th>
+        <th><span class="material-icons-outlined">payments</span> Цена за штуку (₽)</th>
+        <th><span class="material-icons-outlined">sum</span> Сумма</th>
+        <th><span class="material-icons-outlined">delete</span> Удалить</th>
       </tr>
-    </tfoot>
+    </thead>
+    <tbody></tbody>
+  </table>
+  <button onclick="addPieceGoodsRow()" class="secondary" style="margin-top: 10px;">
+    <span class="material-icons-outlined">add</span>
+    Добавить штучный товар
+  </button>
+</div>
+
+<!-- Таблица затрат на электричество -->
+<div class="table-container">
+  <table id="electricityTable">
+    <thead>
+      <tr>
+        <th><span class="material-icons-outlined">bolt</span> Электричество</th>
+        <th><span class="material-icons-outlined">schedule</span> Время работы (часы)</th>
+        <th><span class="material-icons-outlined">electrical_services</span> Мощность (кВт)</th>
+        <th><span class="material-icons-outlined">payments</span> Цена за кВт·ч (₽)</th>
+        <th><span class="material-icons-outlined">sum</span> Сумма</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Энергозатраты</td>
+        <td><input type="number" id="electricityHours" step="0.1" min="0" value="0" class="electricity-input"></td>
+        <td><input type="number" id="electricityPower" step="0.1" min="0" value="0" class="electricity-input"></td>
+        <td><input type="number" id="electricityPrice" step="0.01" min="0" value="0" class="electricity-input"></td>
+        <td id="electricityCost">0.00</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- Итоговая сумма -->
+<div class="table-container">
+  <table id="totalTable">
+    <thead>
+      <tr>
+        <th colspan="2"><span class="material-icons-outlined">receipt_long</span> Итоговые затраты</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Продукты:</td>
+        <td id="productsTotal">0.00 ₽</td>
+      </tr>
+      <tr>
+        <td>Штучный товар:</td>
+        <td id="pieceGoodsTotal">0.00 ₽</td>
+      </tr>
+      <tr>
+        <td>Электричество:</td>
+        <td id="electricityTotal">0.00 ₽</td>
+      </tr>
+      <tr id="finalTotalRow">
+        <td><strong>Общая сумма:</strong></td>
+        <td id="finalTotal">0.00 ₽</td>
+      </tr>
+    </tbody>
   </table>
 </div>
 
@@ -317,13 +384,13 @@
     <span class="material-icons-outlined">add</span>
     Добавить строку
   </button>
-  <button onclick="calculate()" class="success">
+  <button onclick="calculateAll()" class="success">
     <span class="material-icons-outlined">calculate</span>
     Рассчитать
   </button>
-  <button onclick="clearTable()" class="danger">
+  <button onclick="clearAllTables()" class="danger">
     <span class="material-icons-outlined">delete_sweep</span>
-    Очистить
+    Очистить всё
   </button>
   <button id="saveBtn" onclick="saveResult()" style="display: none;" class="secondary">
     <span class="material-icons-outlined">save</span>
@@ -339,6 +406,7 @@
 </div>
 
 <script>
+  // Функция добавления строки в основную таблицу
   function addRow() {
     const tbody = document.querySelector("#costTable tbody");
     const row = document.createElement("tr");
@@ -349,29 +417,47 @@
       <td><input type="number" step="any" placeholder="Кол-во" min="0" class="required" required></td>
       <td class="result">0.00</td>
       <td>
-        <button onclick="deleteRow(this)" class="danger" style="padding: 8px; margin: 0;">
+        <button onclick="deleteRow(this, 'costTable')" class="danger" style="padding: 8px; margin: 0;">
           <span class="material-icons-outlined">delete</span>
         </button>
       </td>
     `;
     tbody.appendChild(row);
-    updateEmptyState();
+    updateSaveButton();
   }
 
-  function deleteRow(btn) {
+  // Функция добавления строки в таблицу штучного товара
+  function addPieceGoodsRow() {
+    const tbody = document.querySelector("#pieceGoodsTable tbody");
+    const row = document.createElement("tr");
+    row.innerHTML = `
+      <td><input type="text" placeholder="Наименование" class="required" required></td>
+      <td><input type="number" step="1" placeholder="Кол-во" min="1" class="required" required></td>
+      <td><input type="number" step="0.01" placeholder="Цена" min="0" class="required" required></td>
+      <td class="result">0.00</td>
+      <td>
+        <button onclick="deleteRow(this, 'pieceGoodsTable')" class="danger" style="padding: 8px; margin: 0;">
+          <span class="material-icons-outlined">delete</span>
+        </button>
+      </td>
+    `;
+    tbody.appendChild(row);
+    updateSaveButton();
+  }
+
+  // Функция удаления строки
+  function deleteRow(btn, tableId) {
     btn.closest("tr").remove();
-    calculate();
-    updateEmptyState();
+    calculateAll();
   }
 
-  function calculate() {
-    let total = 0;
-    const rows = document.querySelectorAll("#costTable tbody tr");
-    const totalRow = document.getElementById("totalRow");
+  // Функция расчета всех затрат
+  function calculateAll() {
+    // Расчет продуктов
+    let productsTotal = 0;
+    const productRows = document.querySelectorAll("#costTable tbody tr");
     
-    totalRow.classList.remove("highlight");
-
-    rows.forEach(row => {
+    productRows.forEach(row => {
       const cells = row.querySelectorAll("td");
       const grams = parseFloat(cells[1].querySelector("input")?.value);
       const price = parseFloat(cells[2].querySelector("input")?.value);
@@ -381,19 +467,56 @@
       if (!isNaN(grams) && !isNaN(price) && !isNaN(quantity) && grams > 0) {
         const cost = (price / grams) * quantity;
         resultCell.textContent = cost.toFixed(2);
-        total += cost;
+        productsTotal += cost;
       } else {
         resultCell.textContent = '0.00';
       }
     });
 
-    document.getElementById("totalCost").textContent = total.toFixed(2);
-    totalRow.classList.add("highlight");
+    // Расчет штучного товара
+    let pieceGoodsTotal = 0;
+    const pieceGoodsRows = document.querySelectorAll("#pieceGoodsTable tbody tr");
+    
+    pieceGoodsRows.forEach(row => {
+      const cells = row.querySelectorAll("td");
+      const quantity = parseFloat(cells[1].querySelector("input")?.value);
+      const price = parseFloat(cells[2].querySelector("input")?.value);
+      const resultCell = cells[3];
 
-    const saveBtn = document.getElementById('saveBtn');
-    saveBtn.style.display = total > 0 ? 'inline-flex' : 'none';
+      if (!isNaN(quantity) && !isNaN(price) && quantity > 0) {
+        const cost = quantity * price;
+        resultCell.textContent = cost.toFixed(2);
+        pieceGoodsTotal += cost;
+      } else {
+        resultCell.textContent = '0.00';
+      }
+    });
+
+    // Расчет электричества
+    const hours = parseFloat(document.getElementById("electricityHours").value) || 0;
+    const power = parseFloat(document.getElementById("electricityPower").value) || 0;
+    const pricePerKwh = parseFloat(document.getElementById("electricityPrice").value) || 0;
+    const electricityCost = hours * power * pricePerKwh;
+    document.getElementById("electricityCost").textContent = electricityCost.toFixed(2);
+
+    // Общий расчет
+    const finalTotal = productsTotal + pieceGoodsTotal + electricityCost;
+    
+    // Обновление итоговых значений
+    document.getElementById("productsTotal").textContent = productsTotal.toFixed(2) + " ₽";
+    document.getElementById("pieceGoodsTotal").textContent = pieceGoodsTotal.toFixed(2) + " ₽";
+    document.getElementById("electricityTotal").textContent = electricityCost.toFixed(2) + " ₽";
+    document.getElementById("finalTotal").textContent = finalTotal.toFixed(2) + " ₽";
+
+    // Подсветка итоговой строки
+    const finalTotalRow = document.getElementById("finalTotalRow");
+    finalTotalRow.classList.add("highlight");
+    
+    // Показываем кнопку сохранения, если есть данные
+    updateSaveButton();
   }
 
+  // Функция сохранения результата
   function saveResult() {
     const name = document.getElementById("recipeName").value.trim();
     if (!name) {
@@ -402,15 +525,28 @@
       return;
     }
     
-    const total = document.getElementById("totalCost").textContent;
+    const productsTotal = parseFloat(document.getElementById("productsTotal").textContent) || 0;
+    const pieceGoodsTotal = parseFloat(document.getElementById("pieceGoodsTotal").textContent) || 0;
+    const electricityTotal = parseFloat(document.getElementById("electricityTotal").textContent) || 0;
+    const finalTotal = parseFloat(document.getElementById("finalTotal").textContent) || 0;
+    
     const item = { 
       name, 
-      total, 
+      total: finalTotal,
+      productsTotal,
+      pieceGoodsTotal,
+      electricityTotal,
       date: new Date().toLocaleString(),
-      items: getTableData()
+      products: getTableData("#costTable"),
+      pieceGoods: getTableData("#pieceGoodsTable"),
+      electricity: {
+        hours: parseFloat(document.getElementById("electricityHours").value) || 0,
+        power: parseFloat(document.getElementById("electricityPower").value) || 0,
+        price: parseFloat(document.getElementById("electricityPrice").value) || 0
+      }
     };
-    let list = JSON.parse(localStorage.getItem("recipes") || "[]");
     
+    let list = JSON.parse(localStorage.getItem("recipes") || "[]");
     const exists = list.findIndex(i => i.name === name);
     if (exists !== -1) {
       if (!confirm(`Рецепт "${name}" уже существует. Перезаписать?`)) return;
@@ -423,30 +559,63 @@
     renderSaved();
   }
 
-  function getTableData() {
-    const rows = document.querySelectorAll("#costTable tbody tr");
+  // Функция получения данных таблицы
+  function getTableData(tableId) {
+    const rows = document.querySelectorAll(`${tableId} tbody tr`);
     const data = [];
     
     rows.forEach(row => {
       const cells = row.querySelectorAll("td");
-      const name = cells[0].querySelector("input")?.value || '';
-      const grams = cells[1].querySelector("input")?.value || '';
-      const price = cells[2].querySelector("input")?.value || '';
-      const quantity = cells[3].querySelector("input")?.value || '';
-      const cost = cells[4].textContent || '0.00';
-      
-      data.push({
-        name,
-        grams,
-        price,
-        quantity,
-        cost
+      const inputs = [];
+      cells.forEach(cell => {
+        const input = cell.querySelector("input");
+        if (input) inputs.push(input.value);
       });
+      
+      if (tableId === "#costTable" && inputs.length >= 4) {
+        data.push({
+          name: inputs[0],
+          grams: inputs[1],
+          price: inputs[2],
+          quantity: inputs[3],
+          cost: cells[4].textContent || '0.00'
+        });
+      } else if (tableId === "#pieceGoodsTable" && inputs.length >= 3) {
+        data.push({
+          name: inputs[0],
+          quantity: inputs[1],
+          price: inputs[2],
+          cost: cells[3].textContent || '0.00'
+        });
+      }
     });
     
     return data;
   }
 
+  // Функция очистки всех таблиц
+  function clearAllTables() {
+    if (!confirm("Очистить все данные? Все несохранённые данные будут потеряны.")) return;
+    
+    document.querySelector("#costTable tbody").innerHTML = '';
+    document.querySelector("#pieceGoodsTable tbody").innerHTML = '';
+    document.getElementById("electricityHours").value = '0';
+    document.getElementById("electricityPower").value = '0';
+    document.getElementById("electricityPrice").value = '0';
+    document.getElementById("electricityCost").textContent = '0.00';
+    
+    document.getElementById("productsTotal").textContent = '0.00 ₽';
+    document.getElementById("pieceGoodsTotal").textContent = '0.00 ₽';
+    document.getElementById("electricityTotal").textContent = '0.00 ₽';
+    document.getElementById("finalTotal").textContent = '0.00 ₽';
+    
+    document.getElementById("recipeName").value = '';
+    document.getElementById("finalTotalRow").classList.remove("highlight");
+    document.getElementById('saveBtn').style.display = 'none';
+    updateEmptyState();
+  }
+
+  // Функция рендеринга сохраненных рецептов
   function renderSaved() {
     const list = JSON.parse(localStorage.getItem("recipes") || "[]");
     const savedList = document.getElementById("savedList");
@@ -485,11 +654,24 @@
     `).join('');
   }
 
-  function updateEmptyState() {
-    const rows = document.querySelectorAll("#costTable tbody tr").length;
-    document.getElementById('saveBtn').style.display = rows > 0 ? 'inline-flex' : 'none';
+  // Функция обновления состояния кнопки сохранения
+  function updateSaveButton() {
+    const hasData = document.querySelectorAll("#costTable tbody tr, #pieceGoodsTable tbody tr").length > 0;
+    document.getElementById('saveBtn').style.display = hasData ? 'inline-flex' : 'none';
+    updateEmptyState();
   }
 
+  // Функция обновления пустого состояния
+  function updateEmptyState() {
+    const list = JSON.parse(localStorage.getItem("recipes") || "[]");
+    const emptyState = document.getElementById("emptyState");
+    
+    if (emptyState) {
+      emptyState.style.display = list.length === 0 ? 'block' : 'none';
+    }
+  }
+
+  // Функция удаления сохраненного рецепта
   function deleteSaved(name) {
     if (!confirm(`Удалить рецепт "${name}"?`)) return;
     
@@ -499,24 +681,28 @@
     renderSaved();
   }
 
-  function clearTable() {
-    if (!confirm("Очистить всю таблицу? Все несохранённые данные будут потеряны.")) return;
-    
-    document.getElementById("costTable").querySelector("tbody").innerHTML = '';
-    document.getElementById("recipeName").value = '';
-    document.getElementById("totalCost").textContent = '0.00';
-    document.getElementById('saveBtn').style.display = 'none';
-    document.getElementById("totalRow").classList.remove("highlight");
-    updateEmptyState();
-  }
-
+  // Функция поделиться результатом
   function shareResult(name, total) {
     const recipe = JSON.parse(localStorage.getItem("recipes")).find(r => r.name === name);
     let message = `Рецепт: ${name}\nИтого: ${total} ₽\n\nСостав:\n`;
     
-    recipe.items.forEach(item => {
-      message += `- ${item.name}: ${item.quantity} × (${item.price} ₽ / ${item.grams}) = ${item.cost} ₽\n`;
-    });
+    if (recipe.products && recipe.products.length > 0) {
+      message += "\nПродукты:\n";
+      recipe.products.forEach(item => {
+        message += `- ${item.name}: ${item.quantity} × (${item.price} ₽ / ${item.grams}) = ${item.cost} ₽\n`;
+      });
+    }
+    
+    if (recipe.pieceGoods && recipe.pieceGoods.length > 0) {
+      message += "\nШтучный товар:\n";
+      recipe.pieceGoods.forEach(item => {
+        message += `- ${item.name}: ${item.quantity} × ${item.price} ₽ = ${item.cost} ₽\n`;
+      });
+    }
+    
+    if (recipe.electricity) {
+      message += `\nЭлектричество: ${recipe.electricity.hours} ч × ${recipe.electricity.power} кВт × ${recipe.electricity.price} ₽ = ${recipe.electricityTotal} ₽\n`;
+    }
     
     message += `\nОбщая стоимость: ${total} ₽`;
     
@@ -530,177 +716,243 @@
     }
   }
 
+  // Функция экспорта в PDF
+  function exportRecipePDF(recipeData) {
+    try {
+      if (typeof window.jspdf === 'undefined') {
+        throw new Error('Библиотека jsPDF не загружена');
+      }
 
+      const recipe = JSON.parse(decodeURIComponent(recipeData));
+      const { jsPDF } = window.jspdf;
+      
+      const doc = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4'
+      });
 
+      // Подключаем шрифт Roboto для поддержки кириллицы
+      doc.addFont('https://fonts.gstatic.com/s/roboto/v30/KFOmCnqEu92Fr1Me5WZLCzYlKw.ttf', 'Roboto', 'normal');
+      doc.setFont('Roboto');
+      
+      // Заголовок документа
+      doc.setFontSize(20);
+      doc.setTextColor(40);
+      doc.text('Калькулятор себестоимости', 105, 20, { align: 'center' });
 
+      // Основная информация
+      doc.setFontSize(16);
+      doc.text(`Рецепт: ${recipe.name}`, 20, 30);
+      doc.setFontSize(12);
+      doc.setTextColor(100);
+      doc.text(`Дата: ${recipe.date}`, 20, 37);
+      doc.setTextColor(0);
 
+      // Подготовка данных для таблиц
+      const headers = ["Наименование", "Кол-во", "Цена", "Стоимость"];
+      
+      // Таблица продуктов
+      if (recipe.products && recipe.products.length > 0) {
+        doc.setFontSize(14);
+        doc.text("Продукты:", 20, 50);
+        
+        const productsBody = recipe.products.map(item => [
+          item.name,
+          `${item.quantity} (${item.grams})`,
+          item.price,
+          item.cost
+        ]);
+        
+        doc.autoTable({
+          startY: 55,
+          head: [headers],
+          body: productsBody,
+          margin: { left: 20 },
+          headStyles: {
+            fillColor: [61, 90, 128],
+            textColor: 255,
+            fontStyle: 'bold',
+            halign: 'center',
+            font: 'Roboto'
+          },
+          bodyStyles: {
+            textColor: 0,
+            fontSize: 10,
+            halign: 'center',
+            font: 'Roboto'
+          },
+          columnStyles: {
+            0: { halign: 'left' },
+            3: { halign: 'right' }
+          }
+        });
+      }
 
+      // Таблица штучного товара
+      if (recipe.pieceGoods && recipe.pieceGoods.length > 0) {
+        const startY = doc.lastAutoTable.finalY + 10;
+        doc.setFontSize(14);
+        doc.text("Штучный товар:", 20, startY);
+        
+        const pieceGoodsBody = recipe.pieceGoods.map(item => [
+          item.name,
+          item.quantity,
+          item.price,
+          item.cost
+        ]);
+        
+        doc.autoTable({
+          startY: startY + 5,
+          head: [headers],
+          body: pieceGoodsBody,
+          margin: { left: 20 },
+          headStyles: {
+            fillColor: [61, 90, 128],
+            textColor: 255,
+            fontStyle: 'bold',
+            halign: 'center',
+            font: 'Roboto'
+          },
+          bodyStyles: {
+            textColor: 0,
+            fontSize: 10,
+            halign: 'center',
+            font: 'Roboto'
+          },
+          columnStyles: {
+            0: { halign: 'left' },
+            3: { halign: 'right' }
+          }
+        });
+      }
 
+      // Электричество
+      if (recipe.electricity) {
+        const startY = doc.lastAutoTable ? doc.lastAutoTable.finalY + 10 : 55;
+        doc.setFontSize(14);
+        doc.text("Электричество:", 20, startY);
+        
+        doc.autoTable({
+          startY: startY + 5,
+          head: [["Параметр", "Значение", "Стоимость"]],
+          body: [
+            ["Время работы", `${recipe.electricity.hours} ч`, ""],
+            ["Мощность", `${recipe.electricity.power} кВт`, ""],
+            ["Цена за кВт·ч", `${recipe.electricity.price} ₽`, ""],
+            ["Итого", "", `${recipe.electricityTotal} ₽`]
+          ],
+          margin: { left: 20 },
+          headStyles: {
+            fillColor: [61, 90, 128],
+            textColor: 255,
+            fontStyle: 'bold',
+            halign: 'center',
+            font: 'Roboto'
+          },
+          bodyStyles: {
+            textColor: 0,
+            fontSize: 10,
+            font: 'Roboto'
+          },
+          columnStyles: {
+            0: { halign: 'left' },
+            2: { halign: 'right' }
+          }
+        });
+      }
 
+      // Итоговая сумма
+      const finalY = doc.lastAutoTable.finalY + 15;
+      doc.setFontSize(16);
+      doc.setTextColor(40);
+      doc.text(`Общая стоимость: ${recipe.total} ₽`, 20, finalY);
 
+      // Сохраняем PDF
+      doc.save(`${recipe.name.replace(/[/\\?%*:|"<>]/g, '-')}.pdf`);
 
-function exportRecipePDF(recipeData) {
-  try {
-    if (typeof window.jspdf === 'undefined') {
-      throw new Error('Библиотека jsPDF не загружена');
+    } catch (error) {
+      console.error('Ошибка при экспорте в PDF:', error);
+      alert('Ошибка при создании PDF: ' + error.message);
     }
-
-    const recipe = JSON.parse(decodeURIComponent(recipeData));
-    const { jsPDF } = window.jspdf;
-    
-    const doc = new jsPDF({
-      orientation: 'portrait',
-      unit: 'mm',
-      format: 'a4'
-    });
-
-    // Подключаем шрифт Roboto для поддержки кириллицы
-    doc.addFont('https://fonts.gstatic.com/s/roboto/v30/KFOmCnqEu92Fr1Me5WZLCzYlKw.ttf', 'Roboto', 'normal');
-    doc.setFont('Roboto');
-    
-    // Заголовок документа
-    doc.setFontSize(20);
-    doc.setTextColor(40);
-    doc.text('Калькулятор себестоимости', 105, 20, { align: 'center' });
-
-    // Основная информация
-    doc.setFontSize(16);
-    doc.text(`Рецепт: ${recipe.name}`, 20, 30);
-    doc.setFontSize(12);
-    doc.setTextColor(100);
-    doc.text(`Дата: ${recipe.date}`, 20, 37);
-    doc.setTextColor(0);
-
-    // Подготовка данных таблицы
-    const headers = [
-      "Наименование", 
-      "Кол-во в упаковке", 
-      "Цена упаковки (₽)", 
-      "Добавляемое кол-во", 
-      "Стоимость (₽)"
-    ];
-
-    // Проверка наличия items в объекте рецепта
-    const body = Array.isArray(recipe.items) ? recipe.items.map(item => [
-      item.name,
-      item.grams,
-      item.price,
-      item.quantity,
-      item.cost
-    ]) : [];
-
-    // Добавляем итоговую строку
-    const totalRow = ['', '', '', 'Итого:', recipe.total];
-    body.push(totalRow);
-
-    // Создаем таблицу с autotable
-    doc.autoTable({
-      startY: 50,
-      head: [headers],
-      body: body,
-      margin: { left: 20 },
-      headStyles: {
-        fillColor: [61, 90, 128], // Темно-синий фон заголовков
-        textColor: 255, // Белый текст
-        fontStyle: 'bold',
-        halign: 'center',
-        font: 'Roboto',
-        lineWidth: 0.5, // Толщина границ
-        lineColor: [0, 0, 0] // Черные границы
-      },
-      bodyStyles: {
-        textColor: 0, // Черный текст
-        fontSize: 10,
-        halign: 'center',
-        font: 'Roboto',
-        lineWidth: 0.5, // Толщина границ
-        lineColor: [0, 0, 0] // Черные границы
-      },
-      alternateRowStyles: {
-        fillColor: [240, 240, 240], // Серый фон для четных строк
-        lineWidth: 0.5,
-        lineColor: [0, 0, 0]
-      },
-      styles: {
-        font: 'Roboto',
-        fontStyle: 'normal',
-        lineWidth: 0.5,
-        lineColor: [0, 0, 0]
-      },
-      columnStyles: {
-        0: { halign: 'left' },
-        4: { halign: 'right' }
-      },
-      didParseCell: (data) => {
-        // Стили для итоговой строки
-        if (data.row.index === body.length - 1) {
-          data.cell.styles.fontStyle = 'bold';
-          data.cell.styles.textColor = [0, 0, 0]; // Черный текст
-          data.cell.styles.lineWidth = 0.5;
-          data.cell.styles.lineColor = [0, 0, 0]; // Черные границы
-        }
-      },
-      tableLineColor: [0, 0, 0], // Цвет границ таблицы
-      tableLineWidth: 0.5 // Толщина границ таблицы
-    });
-
-    // Сохраняем PDF
-    doc.save(`${recipe.name.replace(/[/\\?%*:|"<>]/g, '-')}.pdf`);
-
-  } catch (error) {
-    console.error('Ошибка при экспорте в PDF:', error);
-    alert('Ошибка при создании PDF: ' + error.message);
   }
-}
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+  // Функция экспорта в Excel
   function exportRecipeExcel(recipeData) {
     const recipe = JSON.parse(decodeURIComponent(recipeData));
     
     // Создаем рабочую книгу
     const wb = XLSX.utils.book_new();
     
-    // Подготовка данных
-    const headers = ['Наименование', 'Кол-во в упаковке', 'Цена упаковки', 'Добавляемое кол-во', 'Стоимость'];
-    const data = recipe.items.map(item => [
-      item.name,
-      item.grams,
-      item.price,
-      item.quantity,
-      item.cost
-    ]);
+    // Подготовка данных для листа
+    const data = [];
     
-    // Добавляем итоговую строку
-    data.push(['', '', '', 'Итого:', recipe.total]);
+    // Заголовок
+    data.push(["Калькулятор себестоимости"]);
+    data.push([`Рецепт: ${recipe.name}`]);
+    data.push([`Дата: ${recipe.date}`]);
+    data.push([]);
+    
+    // Продукты
+    if (recipe.products && recipe.products.length > 0) {
+      data.push(["Продукты:"]);
+      data.push(["Наименование", "Кол-во в упаковке", "Цена упаковки", "Добавляемое кол-во", "Стоимость"]);
+      
+      recipe.products.forEach(item => {
+        data.push([
+          item.name,
+          item.grams,
+          item.price,
+          item.quantity,
+          item.cost
+        ]);
+      });
+      
+      data.push(["", "", "", "Итого:", recipe.productsTotal]);
+      data.push([]);
+    }
+    
+    // Штучный товар
+    if (recipe.pieceGoods && recipe.pieceGoods.length > 0) {
+      data.push(["Штучный товар:"]);
+      data.push(["Наименование", "Количество", "Цена за штуку", "Стоимость"]);
+      
+      recipe.pieceGoods.forEach(item => {
+        data.push([
+          item.name,
+          item.quantity,
+          item.price,
+          item.cost
+        ]);
+      });
+      
+      data.push(["", "", "Итого:", recipe.pieceGoodsTotal]);
+      data.push([]);
+    }
+    
+    // Электричество
+    if (recipe.electricity) {
+      data.push(["Электричество:"]);
+      data.push(["Параметр", "Значение", "Стоимость"]);
+      data.push(["Время работы", `${recipe.electricity.hours} ч`, ""]);
+      data.push(["Мощность", `${recipe.electricity.power} кВт`, ""]);
+      data.push(["Цена за кВт·ч", `${recipe.electricity.price} ₽`, ""]);
+      data.push(["Итого", "", recipe.electricityTotal]);
+      data.push([]);
+    }
+    
+    // Итоговая сумма
+    data.push(["Общая стоимость:", "", "", recipe.total]);
     
     // Создаем лист
-    const ws = XLSX.utils.aoa_to_sheet([headers, ...data]);
+    const ws = XLSX.utils.aoa_to_sheet(data);
     
-    // Добавляем стили для заголовков
+    // Добавляем стили для колонок
     ws['!cols'] = [
       { wch: 30 }, // Наименование
-      { wch: 15 }, // Кол-во в упаковке
-      { wch: 15 }, // Цена упаковки
-      { wch: 20 }, // Добавляемое кол-во
+      { wch: 15 }, // Кол-во
+      { wch: 15 }, // Цена
+      { wch: 15 }, // Добавляемое кол-во
       { wch: 15 }  // Стоимость
     ];
     
@@ -714,13 +966,18 @@ function exportRecipePDF(recipeData) {
   // Инициализация при загрузке
   document.addEventListener('DOMContentLoaded', () => {
     renderSaved();
-    addRow(); // Добавляем первую строку по умолчанию
+    addRow(); // Добавляем первую строку в основную таблицу
     
     // Валидация полей в реальном времени
     document.querySelectorAll('input.required').forEach(input => {
       input.addEventListener('input', function() {
         this.classList.toggle('invalid', !this.checkValidity());
       });
+    });
+    
+    // Расчет при изменении данных по электричеству
+    document.querySelectorAll('.electricity-input').forEach(input => {
+      input.addEventListener('input', calculateAll);
     });
   });
 </script>
