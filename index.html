@@ -4,13 +4,11 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Калькулятор себестоимости</title>
-
-  <!-- Подключение манифеста PWA -->
   <link rel="manifest" href="manifest.json">
   <link rel="icon" href="https://fonts.gstatic.com/s/i/materialiconsoutlined/calculator/v6/24px.svg" sizes="192x192">
   <link rel="apple-touch-icon" href="https://fonts.gstatic.com/s/i/materialiconsoutlined/calculator/v6/48px.svg">
   <meta name="theme-color" content="#4fc3f7">
-
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <style>
     :root {
       --bg-color: #1e1e2f;
@@ -24,7 +22,7 @@
       margin: 0;
       padding: 20px;
       font-family: 'Segoe UI', sans-serif;
-      background: url('https://www.transparenttextures.com/patterns/stardust.png') repeat, var(--bg-color);
+      background-color: var(--bg-color);
       color: var(--text-color);
       max-width: 960px;
       margin: auto;
@@ -33,7 +31,7 @@
     h2 {
       text-align: center;
       color: var(--accent);
-      word-break: break-word;
+      word-break: normal;
     }
 
     .table-wrapper {
@@ -53,12 +51,9 @@
       border: 1px solid var(--border-color);
       padding: 12px;
       text-align: center;
-      overflow-wrap: break-word;
-      word-wrap: break-word;
-      word-break: keep-all;
       white-space: normal;
+      word-break: break-word;
     }
-
 
     th {
       background-color: #333;
@@ -97,28 +92,29 @@
       background-color: #222;
     }
 
-    tfoot.highlight td {
-      background-color: #66bb6a !important;
-      color: #000 !important;
-    }
-
     .result {
       font-weight: bold;
       color: #aed581;
     }
 
-    @media (max-width: 768px) {
-      input {
-        font-size: 16px;
-      }
-      th, td {
-        font-size: 14px;
-        padding: 10px 6px;
-      }
-      button {
-        width: 100%;
-        margin-top: 10px;
-      }
+    .highlight-total td {
+      background-color: #00e676 !important;
+      color: #000;
+    }
+
+    .share-options {
+      display: none;
+      background-color: #2b2b3c;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 10px;
+      margin-top: 10px;
+    }
+
+    .share-options button {
+      display: block;
+      width: 100%;
+      margin: 5px 0;
     }
   </style>
 </head>
@@ -126,7 +122,7 @@
 
 <h2>Калькулятор себестоимости продуктов</h2>
 
-<div class="table-wrapper">
+<div class="table-wrapper" id="table-wrapper">
   <table id="costTable">
     <thead>
       <tr>
@@ -139,10 +135,9 @@
       </tr>
     </thead>
     <tbody>
-      <!-- строки добавляются JS -->
     </tbody>
     <tfoot>
-      <tr>
+      <tr id="totalRow">
         <td colspan="4">Итого:</td>
         <td id="totalCost">0.00</td>
         <td></td>
@@ -154,6 +149,12 @@
 <button onclick="addRow()">Добавить строку</button>
 <button onclick="calculate()">Рассчитать</button>
 <button onclick="clearResults()">Очистить результаты</button>
+<button id="shareButton" style="display:none" onclick="toggleShareOptions()">Поделиться</button>
+
+<div id="shareOptions" class="share-options">
+  <button onclick="exportAsImage()">Сохранить как JPEG</button>
+  <!-- Будущие форматы: PDF, Excel, Word -->
+</div>
 
 <script>
   function addRow() {
@@ -177,8 +178,6 @@
   }
 
   function calculate() {
-    document.querySelector("tfoot").classList.remove("highlight");
-
     let total = 0;
     const rows = document.querySelectorAll("#costTable tbody tr");
 
@@ -199,7 +198,11 @@
     });
 
     document.getElementById("totalCost").textContent = total.toFixed(2);
-    document.querySelector("tfoot").classList.add("highlight");
+
+    const totalRow = document.getElementById("totalRow");
+    totalRow.classList.add("highlight-total");
+
+    document.getElementById("shareButton").style.display = 'inline-block';
   }
 
   function clearResults() {
@@ -208,7 +211,36 @@
       row.querySelector(".result").textContent = '';
     });
     document.getElementById("totalCost").textContent = '0.00';
-    document.querySelector("tfoot").classList.remove("highlight");
+    document.getElementById("totalRow").classList.remove("highlight-total");
+    document.getElementById("shareButton").style.display = 'none';
+    document.getElementById("shareOptions").style.display = 'none';
+  }
+
+  function toggleShareOptions() {
+    const options = document.getElementById("shareOptions");
+    options.style.display = options.style.display === 'none' ? 'block' : 'none';
+  }
+
+  function exportAsImage() {
+    const table = document.getElementById("table-wrapper");
+    html2canvas(table).then(canvas => {
+      canvas.toBlob(blob => {
+        const file = new File([blob], "result.jpg", { type: "image/jpeg" });
+
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+          navigator.share({
+            files: [file],
+            title: "Калькулятор себестоимости",
+            text: "Смотри расчёт",
+          });
+        } else {
+          const a = document.createElement("a");
+          a.href = URL.createObjectURL(blob);
+          a.download = "result.jpg";
+          a.click();
+        }
+      }, 'image/jpeg');
+    });
   }
 </script>
 
