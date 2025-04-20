@@ -18,6 +18,7 @@
       --text-color: #ffffff;
       --accent: #4fc3f7;
       --border-color: #444;
+      --highlight-color: #76ff03;
     }
 
     body {
@@ -94,6 +95,11 @@
       background-color: #222;
     }
 
+    .highlight {
+      background-color: var(--highlight-color) !important;
+      color: #000 !important;
+    }
+
     .result {
       font-weight: bold;
       color: #aed581;
@@ -154,10 +160,9 @@
       </tr>
     </thead>
     <tbody>
-      <!-- строки добавляются JS -->
     </tbody>
     <tfoot>
-      <tr>
+      <tr id="totalRow">
         <td colspan="4">Итого:</td>
         <td id="totalCost">0.00</td>
         <td></td>
@@ -169,19 +174,12 @@
 <button onclick="addRow()">Добавить строку</button>
 <button onclick="calculate()">Рассчитать</button>
 <button onclick="clearResults()">Очистить результаты</button>
-
-<!-- Кнопка поделеиться -->
-<button class="share-button" id="shareButton" onclick="toggleShareMenu()">Поделиться</button>
-
-<!-- Всплывающее меню -->
+<button class="share-button" id="shareButton" onclick="toggleShareMenu()" style="display:none">Поделиться</button>
 <div class="share-menu" id="shareMenu">
-  <button onclick="exportToPDF()">PDF</button>
-  <button onclick="exportToWord()">Word</button>
-  <button onclick="exportToExcel()">Excel</button>
+  <button onclick="shareFormat('pdf')">PDF</button>
+  <button onclick="shareFormat('word')">Word</button>
+  <button onclick="shareFormat('excel')">Excel</button>
 </div>
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.0/xlsx.full.min.js"></script>
 
 <script>
   let totalCalculated = false;
@@ -189,7 +187,6 @@
   function addRow() {
     const tbody = document.querySelector("#costTable tbody");
     const row = document.createElement("tr");
-
     row.innerHTML = `
       <td><input type="text" placeholder="Название"></td>
       <td><input type="number" step="any" placeholder="Кол-во"></td>
@@ -209,7 +206,6 @@
   function calculate() {
     let total = 0;
     const rows = document.querySelectorAll("#costTable tbody tr");
-
     rows.forEach(row => {
       const cells = row.querySelectorAll("td");
       const grams = parseFloat(cells[1].querySelector("input")?.value);
@@ -225,19 +221,14 @@
         resultCell.textContent = '';
       }
     });
-
     document.getElementById("totalCost").textContent = total.toFixed(2);
+    document.getElementById("totalRow").classList.add("highlight");
     totalCalculated = true;
     toggleShareButton();
   }
 
   function toggleShareButton() {
-    const shareButton = document.getElementById("shareButton");
-    if (totalCalculated) {
-      shareButton.style.display = "inline-block";
-    } else {
-      shareButton.style.display = "none";
-    }
+    document.getElementById("shareButton").style.display = totalCalculated ? "inline-block" : "none";
   }
 
   function toggleShareMenu() {
@@ -245,29 +236,31 @@
     menu.style.display = menu.style.display === "none" || menu.style.display === "" ? "block" : "none";
   }
 
-  function exportToPDF() {
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF();
+  async function shareFormat(format) {
+    const total = document.getElementById("totalCost").textContent;
+    let content = `Калькулятор себестоимости\nИтого: ${total}`;
 
-    doc.text("Калькулятор себестоимости", 10, 10);
-    doc.text("Итого: " + document.getElementById("totalCost").textContent, 10, 20);
-    doc.save("result.pdf");
-  }
+    let blob;
+    if (format === 'pdf') {
+      const pdf = new Blob([content], { type: 'application/pdf' });
+      blob = pdf;
+    } else if (format === 'word') {
+      const word = new Blob([`<html><body><p>${content}</p></body></html>`], { type: 'application/msword' });
+      blob = word;
+    } else if (format === 'excel') {
+      const excel = new Blob([content], { type: 'application/vnd.ms-excel' });
+      blob = excel;
+    }
 
-  function exportToWord() {
-    const wordContent = `<html><body><h2>Калькулятор себестоимости</h2><p>Итого: ${document.getElementById("totalCost").textContent}</p></body></html>`;
-    const blob = new Blob([wordContent], { type: "application/msword" });
-    const link = document.createElement("a");
-    link.href = URL.createObjectURL(blob);
-    link.download = "result.doc";
-    link.click();
-  }
-
-  function exportToExcel() {
-    const ws = XLSX.utils.table_to_sheet(document.getElementById("costTable"));
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Себестоимость");
-    XLSX.writeFile(wb, "result.xlsx");
+    if (navigator.canShare && navigator.canShare({ files: [new File([blob], `итог.${format}`) ] })) {
+      await navigator.share({
+        title: 'Себестоимость',
+        text: 'Результаты калькуляции',
+        files: [new File([blob], `итог.${format}`)],
+      });
+    } else {
+      alert("Ваше устройство не поддерживает системное меню 'Поделиться' с файлами.");
+    }
   }
 
   function clearResults() {
@@ -276,6 +269,7 @@
       row.querySelector(".result").textContent = '';
     });
     document.getElementById("totalCost").textContent = '0.00';
+    document.getElementById("totalRow").classList.remove("highlight");
     totalCalculated = false;
     toggleShareButton();
   }
