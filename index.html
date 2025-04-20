@@ -18,6 +18,7 @@
       --accent: #4fc3f7;
       --border-color: #444;
       --highlight-color: #76ff03;
+      --input-bg: #1c1c2a;
     }
     body {
       margin: 0;
@@ -31,6 +32,18 @@
     h2 {
       text-align: center;
       color: var(--accent);
+    }
+    .form-group {
+      margin-bottom: 20px;
+    }
+    .form-group input {
+      width: 100%;
+      padding: 12px;
+      background-color: var(--input-bg);
+      color: var(--text-color);
+      border: 1px solid var(--border-color);
+      border-radius: 5px;
+      box-sizing: border-box;
     }
     .table-wrapper {
       overflow-x: auto;
@@ -55,16 +68,6 @@
       background-color: #333;
       font-weight: bold;
     }
-    input[type="text"],
-    input[type="number"] {
-      width: 100%;
-      padding: 8px;
-      background-color: #1c1c2a;
-      color: var(--text-color);
-      border: 1px solid var(--border-color);
-      border-radius: 5px;
-      box-sizing: border-box;
-    }
     button {
       background-color: var(--accent);
       border: none;
@@ -73,7 +76,7 @@
       font-weight: bold;
       border-radius: 8px;
       cursor: pointer;
-      margin: 5px 5px 15px 0;
+      margin: 5px;
       transition: 0.3s;
     }
     button:hover {
@@ -86,24 +89,6 @@
     .highlight {
       background-color: var(--highlight-color) !important;
       color: #000 !important;
-    }
-    .saved-list {
-      margin-top: 30px;
-    }
-    .saved-item {
-      background-color: #333;
-      padding: 10px;
-      border-radius: 6px;
-      margin-bottom: 10px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .saved-item span {
-      font-weight: bold;
-    }
-    .saved-item button {
-      margin-left: 10px;
     }
     .export-menu {
       margin-top: 15px;
@@ -125,11 +110,44 @@
     .export-menu-item:hover {
       color: #4fc3f7;
     }
+    .export-buttons {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+    }
+    .export-buttons button {
+      font-size: 16px;
+      padding: 10px;
+      border-radius: 50%;
+      width: 50px;
+      height: 50px;
+    }
+    .export-buttons .icon {
+      font-size: 24px;
+    }
+    .saved-list {
+      margin-top: 30px;
+    }
+    .saved-item {
+      background-color: #333;
+      padding: 10px;
+      border-radius: 6px;
+      margin-bottom: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .saved-item span {
+      font-weight: bold;
+    }
+    .saved-item button {
+      margin-left: 10px;
+    }
   </style>
 </head>
 <body>
 <h2>Калькулятор себестоимости продуктов</h2>
-<div>
+<div class="form-group">
   <label for="recipeName">Название рецепта:</label>
   <input type="text" id="recipeName" placeholder="Введите название рецепта">
 </div>
@@ -161,17 +179,18 @@
 
 <!-- Export & Share Menu -->
 <div class="export-menu" id="exportMenu">
-  Поделиться / Экспорт
   <div class="export-menu-content">
-    <a href="#" class="export-menu-item" onclick="shareResult()">
-      <i class="material-icons">share</i>Поделиться
-    </a>
-    <a href="#" class="export-menu-item" onclick="exportToPDF()">
-      <i class="material-icons">picture_as_pdf</i>Экспорт в PDF
-    </a>
-    <a href="#" class="export-menu-item" onclick="exportToExcel()">
-      <i class="material-icons">grid_on</i>Экспорт в Excel
-    </a>
+    <div class="export-buttons">
+      <button onclick="shareResult()" class="icon">
+        <span class="material-icons">share</span>
+      </button>
+      <button onclick="exportToPDF()" class="icon">
+        <span class="material-icons">picture_as_pdf</span>
+      </button>
+      <button onclick="exportToExcel()" class="icon">
+        <span class="material-icons">grid_on</span>
+      </button>
+    </div>
   </div>
 </div>
 
@@ -256,7 +275,7 @@
     renderSaved();
   }
 
-  // Функция для экспорта в PDF
+  // Реализация экспорта в PDF
   async function exportToPDF() {
     const table = document.querySelector(".table-wrapper");
     const canvas = await html2canvas(table);
@@ -266,7 +285,7 @@
     pdf.save("recipe.pdf");
   }
 
-  // Функция для экспорта в Excel
+  // Реализация экспорта в Excel
   function exportToExcel() {
     const table = document.getElementById("costTable");
     const html = table.outerHTML;
@@ -279,9 +298,20 @@
     URL.revokeObjectURL(url);
   }
 
-  // Placeholder для функции "Поделиться"
+  // Реализация функции "Поделиться"
   function shareResult() {
-    alert("Функция 'Поделиться' пока не реализована.");
+    const recipeName = document.getElementById("recipeName").value;
+    const totalCost = document.getElementById("totalCost").textContent;
+    const message = `Рецепт: ${recipeName}\nИтого: ${totalCost}`;
+    
+    if (navigator.share) {
+      navigator.share({
+        title: 'Поделиться рецептом',
+        text: message,
+      }).catch(console.error);
+    } else {
+      alert("Функция 'Поделиться' не поддерживается в вашем браузере.");
+    }
   }
 </script>
 </body>
