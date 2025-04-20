@@ -8,6 +8,8 @@
   <link rel="icon" href="https://fonts.gstatic.com/s/i/materialiconsoutlined/calculator/v6/24px.svg" sizes="192x192">
   <link rel="apple-touch-icon" href="https://fonts.gstatic.com/s/i/materialiconsoutlined/calculator/v6/48px.svg">
   <meta name="theme-color" content="#4fc3f7">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <style>
     :root {
       --bg-color: #1e1e2f;
@@ -103,6 +105,41 @@
     .saved-item button {
       margin-left: 10px;
     }
+    /* Popup Menu Style */
+    .export-menu {
+      position: relative;
+      display: inline-block;
+      cursor: pointer;
+      background-color: var(--accent);
+      padding: 12px;
+      border-radius: 8px;
+      color: #000;
+    }
+    .export-menu-content {
+      display: none;
+      position: absolute;
+      background-color: #333;
+      min-width: 160px;
+      box-shadow: 0px 8px 16px rgba(0,0,0,0.2);
+      z-index: 1;
+      border-radius: 5px;
+    }
+    .export-menu:hover .export-menu-content {
+      display: block;
+    }
+    .export-menu-item {
+      padding: 12px;
+      color: white;
+      display: flex;
+      align-items: center;
+      text-decoration: none;
+    }
+    .export-menu-item:hover {
+      background-color: #4fc3f7;
+    }
+    .export-menu-item i {
+      margin-right: 10px;
+    }
   </style>
 </head>
 <body>
@@ -136,10 +173,28 @@
 <button onclick="addRow()">Добавить строку</button>
 <button onclick="calculate()">Рассчитать</button>
 <button onclick="saveResult()">Сохранить расчет</button>
-<button id="shareButton" style="display:none" onclick="shareResult()">Поделиться</button>
+
+<!-- Export & Share Menu -->
+<div class="export-menu" id="exportMenu" style="display:none;">
+  Поделиться / Экспорт
+  <div class="export-menu-content">
+    <a href="#" class="export-menu-item" onclick="shareResult()">
+      <i class="material-icons">share</i>Поделиться
+    </a>
+    <a href="#" class="export-menu-item" onclick="exportToPDF()">
+      <i class="material-icons">picture_as_pdf</i>Экспорт в PDF
+    </a>
+    <a href="#" class="export-menu-item" onclick="exportToExcel()">
+      <i class="material-icons">grid_on</i>Экспорт в Excel
+    </a>
+  </div>
+</div>
+
 <div class="saved-list" id="savedList"></div>
+
 <script>
   let totalCalculated = false;
+
   function addRow() {
     const tbody = document.querySelector("#costTable tbody");
     const row = document.createElement("tr");
@@ -153,19 +208,23 @@
     `;
     tbody.appendChild(row);
   }
+
   function deleteRow(btn) {
     btn.closest("tr").remove();
     calculate();
   }
+
   function calculate() {
     let total = 0;
     const rows = document.querySelectorAll("#costTable tbody tr");
+
     rows.forEach(row => {
       const cells = row.querySelectorAll("td");
       const grams = parseFloat(cells[1].querySelector("input")?.value);
       const price = parseFloat(cells[2].querySelector("input")?.value);
       const quantity = parseFloat(cells[3].querySelector("input")?.value);
       const resultCell = cells[4];
+
       if (!isNaN(grams) && !isNaN(price) && !isNaN(quantity) && grams > 0) {
         const cost = (price / grams) * quantity;
         resultCell.textContent = cost.toFixed(2);
@@ -174,11 +233,13 @@
         resultCell.textContent = '';
       }
     });
+
     document.getElementById("totalCost").textContent = total.toFixed(2);
     document.getElementById("totalRow").classList.add("highlight");
     totalCalculated = true;
-    document.getElementById("shareButton").style.display = 'inline-block';
+    document.getElementById("exportMenu").style.display = 'inline-block';
   }
+
   function saveResult() {
     const name = document.getElementById("recipeName").value.trim();
     if (!name) return alert("Введите название рецепта");
@@ -191,50 +252,37 @@
     localStorage.setItem("recipes", JSON.stringify(list));
     renderSaved();
   }
+
+  function renderSaved() {
+    const list = JSON.parse(localStorage.getItem("recipes") || "[]");
+    const savedList = document.getElementById("savedList");
+    savedList.innerHTML = list.map(item => `
+      <div class="saved-item">
+        <span>${item.name}: ${item.total}</span>
+        <button onclick="deleteSaved('${item.name}')">❌</button>
+      </div>
+    `).join('');
+  }
+
   function deleteSaved(name) {
     let list = JSON.parse(localStorage.getItem("recipes") || "[]");
-    list = list.filter(i => i.name !== name);
+    list = list.filter(item => item.name !== name);
     localStorage.setItem("recipes", JSON.stringify(list));
     renderSaved();
   }
-  function renderSaved() {
-    const container = document.getElementById("savedList");
-    container.innerHTML = '<h3>Сохраненные рецепты:</h3>';
-    const list = JSON.parse(localStorage.getItem("recipes") || "[]");
-    list.forEach(item => {
-      const div = document.createElement("div");
-      div.className = "saved-item";
-      div.innerHTML = `
-        <span>${item.name}: ${item.total}</span>
-        <div>
-          <button onclick="loadSaved('${item.name}')">Загрузить</button>
-          <button onclick="deleteSaved('${item.name}')">Удалить</button>
-        </div>
-      `;
-      container.appendChild(div);
-    });
-  }
-  function loadSaved(name) {
-    const list = JSON.parse(localStorage.getItem("recipes") || "[]");
-    const item = list.find(i => i.name === name);
-    if (item) {
-      alert(`Загружен рецепт: ${item.name}\nСумма: ${item.total}`);
-    }
-  }
+
+  // Placeholder export functions (You can link them to real exports)
   function shareResult() {
-    if (navigator.share) {
-      const name = document.getElementById("recipeName").value.trim();
-      const total = document.getElementById("totalCost").textContent;
-      navigator.share({
-        title: name || 'Рецепт',
-        text: `Рецепт: ${name}\nСебестоимость: ${total}`,
-        url: location.href
-      });
-    } else {
-      alert("Ваш браузер не поддерживает функцию 'Поделиться'");
-    }
+    alert("Функция 'Поделиться' пока не реализована.");
   }
-  window.onload = renderSaved;
+
+  function exportToPDF() {
+    alert("Экспорт в PDF пока не реализован.");
+  }
+
+  function exportToExcel() {
+    alert("Экспорт в Excel пока не реализован.");
+  }
 </script>
 </body>
 </html>
