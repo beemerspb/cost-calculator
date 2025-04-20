@@ -32,6 +32,9 @@
     h2 {
       text-align: center;
       color: var(--accent);
+      word-wrap: break-word;
+      word-break: break-word;
+      white-space: normal;
     }
     .form-group {
       margin-bottom: 20px;
@@ -87,7 +90,7 @@
       background-color: #222;
     }
     .highlight {
-      background-color: var(--highlight-color) !important;
+      background-color: #76ff03 !important;
       color: #000 !important;
     }
     .export-menu {
@@ -109,21 +112,6 @@
     }
     .export-menu-item:hover {
       color: #4fc3f7;
-    }
-    .export-buttons {
-      display: flex;
-      justify-content: center;
-      gap: 10px;
-    }
-    .export-buttons button {
-      font-size: 16px;
-      padding: 10px;
-      border-radius: 50%;
-      width: 50px;
-      height: 50px;
-    }
-    .export-buttons .icon {
-      font-size: 24px;
     }
     .saved-list {
       margin-top: 30px;
@@ -180,17 +168,9 @@
 <!-- Export & Share Menu -->
 <div class="export-menu" id="exportMenu">
   <div class="export-menu-content">
-    <div class="export-buttons">
-      <button onclick="shareResult()" class="icon">
-        <span class="material-icons">share</span>
-      </button>
-      <button onclick="exportToPDF()" class="icon">
-        <span class="material-icons">picture_as_pdf</span>
-      </button>
-      <button onclick="exportToExcel()" class="icon">
-        <span class="material-icons">grid_on</span>
-      </button>
-    </div>
+    <button onclick="shareResult()">Поделиться</button>
+    <button onclick="exportToPDF()">Экспорт в PDF</button>
+    <button onclick="exportToExcel()">Экспорт в Excel</button>
   </div>
 </div>
 
@@ -239,7 +219,7 @@
     });
 
     document.getElementById("totalCost").textContent = total.toFixed(2);
-    document.getElementById("totalRow").classList.add("highlight");
+    document.getElementById("totalRow").classList.add("highlight"); // Здесь происходит подсветка
     totalCalculated = true;
     document.getElementById("exportMenu").style.display = 'inline-block';
   }
