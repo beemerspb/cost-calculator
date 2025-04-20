@@ -126,6 +126,7 @@
     .share-button {
       margin-top: 15px;
       background-color: var(--accent);
+      display: none;
     }
 
     @media (max-width: 768px) {
@@ -174,7 +175,7 @@
 <button onclick="addRow()">Добавить строку</button>
 <button onclick="calculate()">Рассчитать</button>
 <button onclick="clearResults()">Очистить результаты</button>
-<button class="share-button" id="shareButton" onclick="toggleShareMenu()" style="display:none">Поделиться</button>
+<button class="share-button" id="shareButton" onclick="toggleShareMenu()">Поделиться</button>
 <div class="share-menu" id="shareMenu">
   <button onclick="shareFormat('pdf')">PDF</button>
   <button onclick="shareFormat('word')">Word</button>
@@ -242,24 +243,42 @@
 
     let blob;
     if (format === 'pdf') {
-      const pdf = new Blob([content], { type: 'application/pdf' });
-      blob = pdf;
+      blob = new Blob([content], { type: 'application/pdf' });
     } else if (format === 'word') {
-      const word = new Blob([`<html><body><p>${content}</p></body></html>`], { type: 'application/msword' });
-      blob = word;
+      blob = new Blob([`<html><body><p>${content}</p></body></html>`], { type: 'application/msword' });
     } else if (format === 'excel') {
-      const excel = new Blob([content], { type: 'application/vnd.ms-excel' });
-      blob = excel;
+      blob = new Blob([content], { type: 'application/vnd.ms-excel' });
     }
 
-    if (navigator.canShare && navigator.canShare({ files: [new File([blob], `итог.${format}`) ] })) {
+    const file = new File([blob], `итог.${format}`);
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
       await navigator.share({
         title: 'Себестоимость',
         text: 'Результаты калькуляции',
-        files: [new File([blob], `итог.${format}`)],
+        files: [file]
       });
     } else {
       alert("Ваше устройство не поддерживает системное меню 'Поделиться' с файлами.");
+
+      // Попытка поделиться текстом
+      if (navigator.share) {
+        try {
+          await navigator.share({
+            title: 'Себестоимость',
+            text: content
+          });
+        } catch (err) {
+          console.warn("Ошибка при вызове navigator.share:", err);
+        }
+      } else {
+        // Копируем в буфер обмена
+        try {
+          await navigator.clipboard.writeText(content);
+          alert("Результат скопирован в буфер обмена");
+        } catch (err) {
+          alert("Не удалось скопировать в буфер обмена");
+        }
+      }
     }
   }
 
