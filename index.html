@@ -8,8 +8,10 @@
   <link rel="icon" href="https://fonts.gstatic.com/s/i/materialiconsoutlined/calculator/v6/24px.svg" sizes="192x192">
   <link rel="apple-touch-icon" href="https://fonts.gstatic.com/s/i/materialiconsoutlined/calculator/v6/48px.svg">
   <meta name="theme-color" content="#4fc3f7">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdn.sheetjs.com/xlsx-0.19.3/package/dist/xlsx.full.min.js"></script>
   <style>
     :root {
       --bg-color: #1e1e2f;
@@ -19,177 +21,346 @@
       --border-color: #444;
       --highlight-color: #76ff03;
       --input-bg: #1c1c2a;
+      --error-color: #ff5252;
+      --success-color: #69f0ae;
     }
+    
+    * {
+      box-sizing: border-box;
+    }
+    
     body {
       margin: 0;
       padding: 20px;
-      font-family: 'Segoe UI', sans-serif;
+      font-family: 'Segoe UI', Roboto, sans-serif;
       background-color: var(--bg-color);
       color: var(--text-color);
       max-width: 960px;
-      margin: auto;
+      margin: 0 auto;
+      line-height: 1.6;
     }
+    
     h2 {
       text-align: center;
       color: var(--accent);
-      word-wrap: break-word;
-      word-break: break-word;
-      white-space: normal;
+      margin-bottom: 30px;
+      font-weight: 500;
+      position: relative;
+      padding-bottom: 15px;
     }
+    
+    h2::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 100px;
+      height: 3px;
+      background: var(--accent);
+      border-radius: 3px;
+    }
+    
+    .form-container {
+      background-color: var(--card-color);
+      padding: 25px;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+      margin-bottom: 30px;
+    }
+    
     .form-group {
-      margin-bottom: 20px;
+      margin-bottom: 25px;
+      position: relative;
     }
+    
+    .form-group label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 500;
+      color: var(--accent);
+    }
+    
     .form-group input {
       width: 100%;
-      padding: 12px;
+      padding: 14px 16px;
+      background-color: var(--input-bg);
+      color: var(--text-color);
+      border: 2px solid var(--border-color);
+      border-radius: 8px;
+      font-size: 16px;
+      transition: all 0.3s;
+    }
+    
+    .form-group input:focus {
+      border-color: var(--accent);
+      outline: none;
+      box-shadow: 0 0 0 2px rgba(79, 195, 247, 0.3);
+    }
+    
+    .form-group input.required:invalid {
+      border-color: var(--error-color);
+    }
+    
+    .form-group input.required:valid {
+      border-color: var(--success-color);
+    }
+    
+    .buttons-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin: 20px 0;
+    }
+    
+    button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      background-color: var(--accent);
+      border: none;
+      padding: 12px 20px;
+      color: #000;
+      font-weight: 600;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.3s;
+      font-size: 15px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    }
+    
+    button:hover {
+      background-color: #29b6f6;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    }
+    
+    button:active {
+      transform: translateY(0);
+    }
+    
+    button.secondary {
+      background-color: #616161;
+      color: white;
+    }
+    
+    button.danger {
+      background-color: var(--error-color);
+      color: white;
+    }
+    
+    button.success {
+      background-color: var(--success-color);
+      color: #000;
+    }
+    
+    .table-container {
+      background-color: var(--card-color);
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+      margin-bottom: 30px;
+      overflow-x: auto;
+    }
+    
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background-color: var(--card-color);
+      min-width: 700px;
+    }
+    
+    th, td {
+      border: 1px solid var(--border-color);
+      padding: 14px;
+      text-align: center;
+      vertical-align: middle;
+    }
+    
+    th {
+      background-color: #333;
+      font-weight: 600;
+      color: var(--accent);
+    }
+    
+    td input {
+      width: 100%;
+      padding: 8px 10px;
       background-color: var(--input-bg);
       color: var(--text-color);
       border: 1px solid var(--border-color);
       border-radius: 5px;
-      box-sizing: border-box;
-    }
-    .table-wrapper {
-      overflow-x: auto;
-      border-radius: 10px;
-      margin-bottom: 15px;
-    }
-    table {
-      min-width: 700px;
-      width: 100%;
-      border-collapse: collapse;
-      background-color: var(--card-color);
-    }
-    th, td {
-      border: 1px solid var(--border-color);
-      padding: 12px;
       text-align: center;
-      overflow-wrap: break-word;
-      word-wrap: break-word;
-      word-break: keep-all;
-      white-space: normal;
     }
-    th {
-      background-color: #333;
-      font-weight: bold;
+    
+    td input:focus {
+      outline: none;
+      border-color: var(--accent);
     }
-    button {
-      background-color: var(--accent);
-      border: none;
-      padding: 10px 15px;
-      color: #000;
-      font-weight: bold;
-      border-radius: 8px;
-      cursor: pointer;
-      margin: 5px;
-      transition: 0.3s;
-    }
-    button:hover {
-      background-color: #29b6f6;
-    }
+    
     tfoot td {
       font-weight: bold;
       background-color: #222;
     }
-    /* Измененный стиль для подсветки */
+    
     tfoot tr.highlight td {
-      background-color: #76ff03 !important;
+      background-color: var(--highlight-color) !important;
       color: #000 !important;
+      font-weight: bold;
     }
+    
     .saved-list {
       margin-top: 30px;
     }
+    
     .saved-item {
-      background-color: #333;
-      padding: 10px;
-      border-radius: 6px;
-      margin-bottom: 10px;
+      background-color: var(--card-color);
+      padding: 16px;
+      border-radius: 8px;
+      margin-bottom: 15px;
       display: flex;
       justify-content: space-between;
       align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     }
+    
     .saved-item span {
-      font-weight: bold;
+      font-weight: 500;
+      font-size: 16px;
+      flex-grow: 1;
     }
-    .saved-item button {
-      margin-left: 10px;
+    
+    .saved-item .item-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
     }
-    .export-menu {
-      margin-top: 15px;
-      display: inline-block;
+    
+    .material-icons-outlined {
+      font-size: 20px;
+      vertical-align: middle;
     }
-    .export-menu-content {
-      background-color: #333;
-      padding: 10px;
-      border-radius: 8px;
+    
+    .empty-state {
       text-align: center;
+      padding: 40px 20px;
+      color: #9e9e9e;
     }
-    .export-menu-item {
-      display: block;
-      color: #fff;
-      margin: 10px 0;
-      text-decoration: none;
-      font-weight: bold;
+    
+    .empty-state .material-icons-outlined {
+      font-size: 48px;
+      margin-bottom: 15px;
+      color: var(--accent);
     }
-    .export-menu-item:hover {
-      color: #4fc3f7;
+    
+    @media (max-width: 768px) {
+      .form-container, .table-container {
+        padding: 15px;
+      }
+      
+      th, td {
+        padding: 10px 8px;
+      }
+      
+      button {
+        padding: 10px 15px;
+        font-size: 14px;
+      }
     }
   </style>
 </head>
 <body>
-<h2>Калькулятор себестоимости продуктов</h2>
-<div class="form-group">
-  <label for="recipeName">Название рецепта:</label>
-  <input type="text" id="recipeName" placeholder="Введите название рецепта">
+<h2>
+  
+  Калькулятор себестоимости продуктов
+</h2>
+
+<div class="form-container">
+  <div class="form-group">
+    <label for="recipeName">
+      
+      Название рецепта:
+    </label>
+    <input type="text" id="recipeName" class="required" placeholder="Введите название рецепта" required>
+  </div>
 </div>
-<div class="table-wrapper">
+
+<div class="table-container">
   <table id="costTable">
     <thead>
       <tr>
-        <th>Наименование продукта</th>
-        <th>Количество в упаковке</th>
-        <th>Цена упаковки</th>
-        <th>Количество добавляемых продуктов</th>
-        <th>Сумма</th>
-        <th>Удалить</th>
+        <th><span class="material-icons-outlined">shopping_basket</span> Наименование</th>
+        <th><span class="material-icons-outlined">scale</span> Количество в упаковке</th>
+        <th><span class="material-icons-outlined">attach_money</span> Цена упаковки</th>
+        <th><span class="material-icons-outlined">exposure_plus_1</span> Добавляемое количество</th>
+        <th><span class="material-icons-outlined">sum</span> Сумма</th>
+        <th><span class="material-icons-outlined">delete</span> Удалить</th>
       </tr>
     </thead>
     <tbody></tbody>
     <tfoot>
       <tr id="totalRow">
-        <td colspan="4">Итого:</td>
+        <td colspan="4"><strong>Итого:</strong></td>
         <td id="totalCost">0.00</td>
         <td></td>
       </tr>
     </tfoot>
   </table>
 </div>
-<button onclick="addRow()">Добавить строку</button>
-<button onclick="calculate()">Рассчитать</button>
-<button onclick="clearTable()">Очистить таблицу</button>
-<button id="saveBtn" onclick="saveResult()" style="display: none;">Сохранить расчет</button>
 
-<div class="saved-list" id="savedList"></div>
+<div class="buttons-container">
+  <button onclick="addRow()">
+    <span class="material-icons-outlined">add</span>
+    Добавить строку
+  </button>
+  <button onclick="calculate()" class="success">
+    <span class="material-icons-outlined">calculate</span>
+    Рассчитать
+  </button>
+  <button onclick="clearTable()" class="danger">
+    <span class="material-icons-outlined">delete_sweep</span>
+    Очистить
+  </button>
+  <button id="saveBtn" onclick="saveResult()" style="display: none;" class="secondary">
+    <span class="material-icons-outlined">save</span>
+    Сохранить
+  </button>
+</div>
+
+<div class="saved-list" id="savedList">
+  <div class="empty-state" id="emptyState">
+    <span class="material-icons-outlined">inventory_2</span>
+    <p>Сохранённые рецепты появятся здесь</p>
+  </div>
+</div>
 
 <script>
-  let totalCalculated = false;
-
   function addRow() {
     const tbody = document.querySelector("#costTable tbody");
     const row = document.createElement("tr");
     row.innerHTML = `
-      <td><input type="text" placeholder="Название"></td>
-      <td><input type="number" step="any" placeholder="Кол-во"></td>
-      <td><input type="number" step="any" placeholder="Цена"></td>
-      <td><input type="number" step="any" placeholder="Кол-во"></td>
-      <td class="result"></td>
-      <td><button onclick="deleteRow(this)">❌</button></td>
+      <td><input type="text" placeholder="Название" class="required" required></td>
+      <td><input type="number" step="any" placeholder="Кол-во" min="0.01" class="required" required></td>
+      <td><input type="number" step="any" placeholder="Цена" min="0" class="required" required></td>
+      <td><input type="number" step="any" placeholder="Кол-во" min="0" class="required" required></td>
+      <td class="result">0.00</td>
+      <td>
+        <button onclick="deleteRow(this)" class="danger" style="padding: 8px; margin: 0;">
+          <span class="material-icons-outlined">delete</span>
+        </button>
+      </td>
     `;
     tbody.appendChild(row);
+    updateEmptyState();
   }
 
   function deleteRow(btn) {
     btn.closest("tr").remove();
     calculate();
+    updateEmptyState();
   }
 
   function calculate() {
@@ -197,7 +368,6 @@
     const rows = document.querySelectorAll("#costTable tbody tr");
     const totalRow = document.getElementById("totalRow");
     
-    // Удаляем класс highlight в начале
     totalRow.classList.remove("highlight");
 
     rows.forEach(row => {
@@ -212,47 +382,116 @@
         resultCell.textContent = cost.toFixed(2);
         total += cost;
       } else {
-        resultCell.textContent = '';
+        resultCell.textContent = '0.00';
       }
     });
 
     document.getElementById("totalCost").textContent = total.toFixed(2);
-    
-    // Добавляем класс highlight после всех расчетов
     totalRow.classList.add("highlight");
 
     const saveBtn = document.getElementById('saveBtn');
-    saveBtn.style.display = 'inline-block';
+    saveBtn.style.display = total > 0 ? 'inline-flex' : 'none';
   }
 
   function saveResult() {
     const name = document.getElementById("recipeName").value.trim();
-    if (!name) return alert("Введите название рецепта");
+    if (!name) {
+      alert("Пожалуйста, введите название рецепта");
+      document.getElementById("recipeName").focus();
+      return;
+    }
+    
     const total = document.getElementById("totalCost").textContent;
-    const item = { name, total };
+    const item = { 
+      name, 
+      total, 
+      date: new Date().toLocaleString(),
+      items: getTableData()
+    };
     let list = JSON.parse(localStorage.getItem("recipes") || "[]");
+    
     const exists = list.findIndex(i => i.name === name);
-    if (exists !== -1) list[exists] = item;
-    else list.push(item);
+    if (exists !== -1) {
+      if (!confirm(`Рецепт "${name}" уже существует. Перезаписать?`)) return;
+      list[exists] = item;
+    } else {
+      list.push(item);
+    }
+    
     localStorage.setItem("recipes", JSON.stringify(list));
     renderSaved();
+  }
+
+  function getTableData() {
+    const rows = document.querySelectorAll("#costTable tbody tr");
+    const data = [];
+    
+    rows.forEach(row => {
+      const cells = row.querySelectorAll("td");
+      const name = cells[0].querySelector("input")?.value || '';
+      const grams = cells[1].querySelector("input")?.value || '';
+      const price = cells[2].querySelector("input")?.value || '';
+      const quantity = cells[3].querySelector("input")?.value || '';
+      const cost = cells[4].textContent || '0.00';
+      
+      data.push({
+        name,
+        grams,
+        price,
+        quantity,
+        cost
+      });
+    });
+    
+    return data;
   }
 
   function renderSaved() {
     const list = JSON.parse(localStorage.getItem("recipes") || "[]");
     const savedList = document.getElementById("savedList");
+    
+    if (list.length === 0) {
+      savedList.innerHTML = `
+        <div class="empty-state">
+          <span class="material-icons-outlined">inventory_2</span>
+          <p>Сохранённые рецепты появятся здесь</p>
+        </div>
+      `;
+      return;
+    }
+    
     savedList.innerHTML = list.map(item => `
       <div class="saved-item">
-        <span>${item.name}: ${item.total}</span>
-        <button onclick="shareResult('${item.name}', '${item.total}')">Поделиться</button>
-        <button onclick="exportRecipePDF('${item.name}', '${item.total}')">Экспорт в PDF</button>
-        <button onclick="exportRecipeExcel('${item.name}', '${item.total}')">Экспорт в Excel</button>
-        <button onclick="deleteSaved('${item.name}')">❌</button>
+        <span>
+          <strong>${item.name}</strong> - ${item.total} ₽
+          <small style="display: block; color: #9e9e9e; font-size: 0.9em;">${item.date || ''}</small>
+        </span>
+        <div class="item-actions">
+          <button onclick="shareResult('${item.name}', '${item.total}')">
+            <span class="material-icons-outlined">share</span>
+          </button>
+          <button onclick="exportRecipePDF('${encodeURIComponent(JSON.stringify(item))}')" class="secondary">
+            <span class="material-icons-outlined">picture_as_pdf</span>
+          </button>
+          <button onclick="exportRecipeExcel('${encodeURIComponent(JSON.stringify(item))}')" class="secondary">
+            <span class="material-icons-outlined">grid_on</span>
+          </button>
+          <button onclick="deleteSaved('${item.name}')" class="danger">
+            <span class="material-icons-outlined">delete</span>
+          </button>
+        </div>
       </div>
     `).join('');
   }
 
+  function updateEmptyState() {
+    const rows = document.querySelectorAll("#costTable tbody tr").length;
+    document.getElementById('saveBtn').style.display = rows > 0 ? 'inline-flex' : 'none';
+  }
+
   function deleteSaved(name) {
+    if (!confirm(`Удалить рецепт "${name}"?`)) return;
+    
     let list = JSON.parse(localStorage.getItem("recipes") || "[]");
     list = list.filter(item => item.name !== name);
     localStorage.setItem("recipes", JSON.stringify(list));
@@ -260,43 +499,152 @@
   }
 
   function clearTable() {
+    if (!confirm("Очистить всю таблицу? Все несохранённые данные будут потеряны.")) return;
+    
     document.getElementById("costTable").querySelector("tbody").innerHTML = '';
     document.getElementById("recipeName").value = '';
     document.getElementById("totalCost").textContent = '0.00';
     document.getElementById('saveBtn').style.display = 'none';
-    renderSaved();
+    document.getElementById("totalRow").classList.remove("highlight");
+    updateEmptyState();
   }
 
   function shareResult(name, total) {
-    const message = `Рецепт: ${name}\nИтого: ${total}`;
+    const recipe = JSON.parse(localStorage.getItem("recipes")).find(r => r.name === name);
+    let message = `Рецепт: ${name}\nИтого: ${total} ₽\n\nСостав:\n`;
+    
+    recipe.items.forEach(item => {
+      message += `- ${item.name}: ${item.quantity} × (${item.price} ₽ / ${item.grams}) = ${item.cost} ₽\n`;
+    });
+    
+    message += `\nОбщая стоимость: ${total} ₽`;
+    
     if (navigator.share) {
       navigator.share({
         title: 'Поделиться рецептом',
         text: message,
       }).catch(console.error);
     } else {
-      alert("Функция 'Поделиться' не поддерживается в вашем браузере.");
+      alert(message + "\n\nСкопируйте эту информацию для отправки");
     }
   }
 
-  function exportRecipePDF(name, total) {
-    const pdf = new jspdf.jsPDF();
-    pdf.text(`Рецепт: ${name}`, 10, 10);
-    pdf.text(`Итого: ${total}`, 10, 20);
-    pdf.save(`${name}.pdf`);
+    function exportRecipePDF(recipeData) {
+    try {
+      const recipe = JSON.parse(decodeURIComponent(recipeData));
+      const { jsPDF } = window.jspdf;
+      
+      // Проверяем, что jsPDF загрузился правильно
+      if (!jsPDF) {
+        throw new Error('Библиотека jsPDF не загружена');
+      }
+      
+      const pdf = new jsPDF();
+      
+      // Заголовок
+      pdf.setFontSize(18);
+      pdf.text(`Рецепт: ${recipe.name}`, 20, 20);
+      
+      // Дата
+      pdf.setFontSize(12);
+      pdf.setTextColor(100);
+      pdf.text(`Дата создания: ${recipe.date}`, 20, 30);
+      
+      // Проверяем наличие jspdf-autotable
+      if (typeof pdf.autoTable !== 'function') {
+        // Если autotable не загружен, создаем простую таблицу
+        pdf.setFontSize(14);
+        pdf.setTextColor(0);
+        pdf.text('Состав рецепта:', 20, 45);
+        
+        let y = 55;
+        recipe.items.forEach(item => {
+          pdf.text(`- ${item.name}: ${item.quantity} × (${item.price} ₽ / ${item.grams}) = ${item.cost} ₽`, 20, y);
+          y += 10;
+        });
+        
+        pdf.text(`Итого: ${recipe.total} ₽`, 20, y + 10);
+      } else {
+        // Если autotable доступен, создаем красивую таблицу
+        const headers = ['Наименование', 'Кол-во в упаковке', 'Цена упаковки', 'Добавляемое кол-во', 'Стоимость'];
+        const data = recipe.items.map(item => [
+          item.name,
+          item.grams,
+          `${item.price} ₽`,
+          item.quantity,
+          `${item.cost} ₽`
+        ]);
+        
+        data.push(['', '', '', 'Итого:', `${recipe.total} ₽`]);
+        
+        pdf.autoTable({
+          startY: 50,
+          head: [headers],
+          body: data,
+          margin: { left: 20 },
+          styles: { fontSize: 10 },
+          headStyles: { fillColor: [51, 51, 51] },
+          alternateRowStyles: { fillColor: [245, 245, 245] }
+        });
+      }
+      
+      pdf.save(`${recipe.name}.pdf`);
+    } catch (error) {
+      console.error('Ошибка при экспорте в PDF:', error);
+      alert('Произошла ошибка при создании PDF. Проверьте консоль для подробностей.');
+    }
   }
 
-  function exportRecipeExcel(name, total) {
-    const blob = new Blob([`Рецепт: ${name}\nИтого: ${total}`], { type: 'application/vnd.ms-excel' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `${name}.xls`;
-    a.click();
-    URL.revokeObjectURL(url);
+  function exportRecipeExcel(recipeData) {
+    const recipe = JSON.parse(decodeURIComponent(recipeData));
+    
+    // Создаем рабочую книгу
+    const wb = XLSX.utils.book_new();
+    
+    // Подготовка данных
+    const headers = ['Наименование', 'Кол-во в упаковке', 'Цена упаковки', 'Добавляемое кол-во', 'Стоимость'];
+    const data = recipe.items.map(item => [
+      item.name,
+      item.grams,
+      item.price,
+      item.quantity,
+      item.cost
+    ]);
+    
+    // Добавляем итоговую строку
+    data.push(['', '', '', 'Итого:', recipe.total]);
+    
+    // Создаем лист
+    const ws = XLSX.utils.aoa_to_sheet([headers, ...data]);
+    
+    // Добавляем стили для заголовков
+    ws['!cols'] = [
+      { wch: 30 }, // Наименование
+      { wch: 15 }, // Кол-во в упаковке
+      { wch: 15 }, // Цена упаковки
+      { wch: 20 }, // Добавляемое кол-во
+      { wch: 15 }  // Стоимость
+    ];
+    
+    // Добавляем лист в книгу
+    XLSX.utils.book_append_sheet(wb, ws, recipe.name);
+    
+    // Экспортируем файл
+    XLSX.writeFile(wb, `${recipe.name}.xlsx`);
   }
 
-  window.onload = renderSaved;
+  // Инициализация при загрузке
+  document.addEventListener('DOMContentLoaded', () => {
+    renderSaved();
+    addRow(); // Добавляем первую строку по умолчанию
+    
+    // Валидация полей в реальном времени
+    document.querySelectorAll('input.required').forEach(input => {
+      input.addEventListener('input', function() {
+        this.classList.toggle('invalid', !this.checkValidity());
+      });
+    });
+  });
 </script>
 </body>
 </html>
