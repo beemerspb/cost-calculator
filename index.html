@@ -24,7 +24,7 @@
       margin: 0;
       padding: 20px;
       font-family: 'Segoe UI', sans-serif;
-      background-color: var(--bg-color);
+      background: url('https://www.transparenttextures.com/patterns/stardust.png') repeat, var(--bg-color);
       color: var(--text-color);
       max-width: 960px;
       margin: auto;
@@ -33,6 +33,7 @@
     h2 {
       text-align: center;
       color: var(--accent);
+      word-break: break-word;
     }
 
     .table-wrapper {
@@ -52,12 +53,9 @@
       border: 1px solid var(--border-color);
       padding: 12px;
       text-align: center;
-      overflow-wrap: break-word;
-      word-wrap: break-word;
-      word-break: keep-all;
+      word-break: break-word;
       white-space: normal;
     }
-
 
     th {
       background-color: #333;
@@ -94,6 +92,11 @@
     tfoot td {
       font-weight: bold;
       background-color: #222;
+    }
+
+    tfoot.highlight td {
+      background-color: #66bb6a !important;
+      color: #000 !important;
     }
 
     .result {
@@ -171,6 +174,8 @@
   }
 
   function calculate() {
+    document.querySelector("tfoot").classList.remove("highlight");
+
     let total = 0;
     const rows = document.querySelectorAll("#costTable tbody tr");
 
@@ -191,6 +196,7 @@
     });
 
     document.getElementById("totalCost").textContent = total.toFixed(2);
+    document.querySelector("tfoot").classList.add("highlight");
   }
 
   function clearResults() {
@@ -199,6 +205,7 @@
       row.querySelector(".result").textContent = '';
     });
     document.getElementById("totalCost").textContent = '0.00';
+    document.querySelector("tfoot").classList.remove("highlight");
   }
 </script>
 
