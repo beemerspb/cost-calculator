@@ -1,6 +1,6 @@
 self.addEventListener("install", (event) => {
   event.waitUntil(
-    caches.open("app-cache").then((cache) => {
+    caches.open("app-cache-v1").then((cache) => {
       return cache.addAll([
         "./",
         "./index.html",
@@ -9,6 +9,21 @@ self.addEventListener("install", (event) => {
         "./icon-192.png",
         "./icon-512.png"
       ]);
+    })
+  );
+});
+
+self.addEventListener("activate", (event) => {
+  const cacheWhitelist = ['app-cache-v1']; // Обновите версию кэша
+  event.waitUntil(
+    caches.keys().then((cacheNames) => {
+      return Promise.all(
+        cacheNames.map((cacheName) => {
+          if (!cacheWhitelist.includes(cacheName)) {
+            return caches.delete(cacheName);
+          }
+        })
+      );
     })
   );
 });
