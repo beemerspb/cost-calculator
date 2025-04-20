@@ -540,117 +540,119 @@
 
 
 function exportRecipePDF(recipeData) {
-    try {
-        if (typeof window.jspdf === 'undefined') {
-            throw new Error('Библиотека jsPDF не загружена');
-        }
-
-        const recipe = JSON.parse(decodeURIComponent(recipeData));
-        const { jsPDF } = window.jspdf;
-        
-        const doc = new jsPDF({
-            orientation: 'portrait',
-            unit: 'mm',
-            format: 'a4'
-        });
-
-        // Подключаем шрифт Roboto для поддержки кириллицы
-        doc.addFont('https://fonts.gstatic.com/s/roboto/v30/KFOmCnqEu92Fr1Me5WZLCzYlKw.ttf', 'Roboto', 'normal');
-        doc.setFont('Roboto');
-        
-        // Заголовок документа
-        doc.setFontSize(20);
-        doc.setTextColor(40);
-        doc.text('Калькулятор себестоимости', 105, 20, { align: 'center' });
-
-        // Основная информация
-        doc.setFontSize(16);
-        doc.text(`Рецепт: ${recipe.name}`, 20, 30);
-        doc.setFontSize(12);
-        doc.setTextColor(100);
-        doc.text(`Дата: ${recipe.date}`, 20, 37);
-        doc.setTextColor(0);
-
-        // Подготовка данных таблицы
-        const headers = [
-            "Наименование", 
-            "Кол-во в упаковке", 
-            "Цена упаковки (₽)", 
-            "Добавляемое кол-во", 
-            "Стоимость (₽)"
-        ];
-
-        const body = recipe.items.map(item => [
-            item.name,
-            item.grams,
-            item.price,
-            item.quantity,
-            item.cost
-        ]);
-
-        // Добавляем итоговую строку
-        const totalRow = ['', '', '', 'Итого:', recipe.total];
-        body.push(totalRow);
-
-        // Создаем таблицу с autotable
-        doc.autoTable({
-            startY: 50,
-            head: [headers],
-            body: body,
-            margin: { left: 20 },
-            headStyles: {
-                fillColor: [61, 90, 128], // Темно-синий фон заголовков
-                textColor: 255, // Белый текст
-                fontStyle: 'bold',
-                halign: 'center',
-                font: 'Roboto',
-                lineWidth: 0.5, // Толщина границ
-                lineColor: [0, 0, 0] // Черные границы
-            },
-            bodyStyles: {
-                textColor: 0, // Черный текст
-                fontSize: 10,
-                halign: 'center',
-                font: 'Roboto',
-                lineWidth: 0.5, // Толщина границ
-                lineColor: [0, 0, 0] // Черные границы
-            },
-            alternateRowStyles: {
-                fillColor: [240, 240, 240], // Серый фон для четных строк
-                lineWidth: 0.5,
-                lineColor: [0, 0, 0]
-            },
-            styles: {
-                font: 'Roboto',
-                fontStyle: 'normal',
-                lineWidth: 0.5,
-                lineColor: [0, 0, 0]
-            },
-            columnStyles: {
-                0: { halign: 'left' },
-                4: { halign: 'right' }
-            },
-            didParseCell: (data) => {
-                // Стили для итоговой строки
-                if (data.row.index === body.length - 1) {
-                    data.cell.styles.fontStyle = 'bold';
-                    data.cell.styles.textColor = [0, 0, 0]; // Черный текст
-                    data.cell.styles.lineWidth = 0.5;
-                    data.cell.styles.lineColor = [0, 0, 0]; // Черные границы
-                }
-            },
-            tableLineColor: [0, 0, 0], // Цвет границ таблицы
-            tableLineWidth: 0.5 // Толщина границ таблицы
-        });
-
-        // Сохраняем PDF
-        doc.save(`${recipe.name.replace(/[/\\?%*:|"<>]/g, '-')}.pdf`);
-
-    } catch (error) {
-        console.error('Ошибка при экспорте в PDF:', error);
-        alert('Ошибка при создании PDF: ' + error.message);
+  try {
+    if (typeof window.jspdf === 'undefined') {
+      throw new Error('Библиотека jsPDF не загружена');
     }
+
+    const recipe = JSON.parse(decodeURIComponent(recipeData));
+    const { jsPDF } = window.jspdf;
+    
+    const doc = new jsPDF({
+      orientation: 'portrait',
+      unit: 'mm',
+      format: 'a4'
+    });
+
+    // Подключаем шрифт Roboto для поддержки кириллицы
+    doc.addFont('https://fonts.gstatic.com/s/roboto/v30/KFOmCnqEu92Fr1Me5WZLCzYlKw.ttf', 'Roboto', 'normal');
+    doc.setFont('Roboto');
+    
+    // Заголовок документа
+    doc.setFontSize(20);
+    doc.setTextColor(40);
+    doc.text('Калькулятор себестоимости', 105, 20, { align: 'center' });
+
+    // Основная информация
+    doc.setFontSize(16);
+    doc.text(`Рецепт: ${recipe.name}`, 20, 30);
+    doc.setFontSize(12);
+    doc.setTextColor(100);
+    doc.text(`Дата: ${recipe.date}`, 20, 37);
+    doc.setTextColor(0);
+
+    // Подготовка данных таблицы
+    const headers = [
+      "Наименование", 
+      "Кол-во в упаковке", 
+      "Цена упаковки (₽)", 
+      "Добавляемое кол-во", 
+      "Стоимость (₽)"
+    ];
+
+    // Проверка наличия items в объекте рецепта
+    const body = Array.isArray(recipe.items) ? recipe.items.map(item => [
+      item.name,
+      item.grams,
+      item.price,
+      item.quantity,
+      item.cost
+    ]) : [];
+
+    // Добавляем итоговую строку
+    const totalRow = ['', '', '', 'Итого:', recipe.total];
+    body.push(totalRow);
+
+    // Создаем таблицу с autotable
+    doc.autoTable({
+      startY: 50,
+      head: [headers],
+      body: body,
+      margin: { left: 20 },
+      headStyles: {
+        fillColor: [61, 90, 128], // Темно-синий фон заголовков
+        textColor: 255, // Белый текст
+        fontStyle: 'bold',
+        halign: 'center',
+        font: 'Roboto',
+        lineWidth: 0.5, // Толщина границ
+        lineColor: [0, 0, 0] // Черные границы
+      },
+      bodyStyles: {
+        textColor: 0, // Черный текст
+        fontSize: 10,
+        halign: 'center',
+        font: 'Roboto',
+        lineWidth: 0.5, // Толщина границ
+        lineColor: [0, 0, 0] // Черные границы
+      },
+      alternateRowStyles: {
+        fillColor: [240, 240, 240], // Серый фон для четных строк
+        lineWidth: 0.5,
+        lineColor: [0, 0, 0]
+      },
+      styles: {
+        font: 'Roboto',
+        fontStyle: 'normal',
+        lineWidth: 0.5,
+        lineColor: [0, 0, 0]
+      },
+      columnStyles: {
+        0: { halign: 'left' },
+        4: { halign: 'right' }
+      },
+      didParseCell: (data) => {
+        // Стили для итоговой строки
+        if (data.row.index === body.length - 1) {
+          data.cell.styles.fontStyle = 'bold';
+          data.cell.styles.textColor = [0, 0, 0]; // Черный текст
+          data.cell.styles.lineWidth = 0.5;
+          data.cell.styles.lineColor = [0, 0, 0]; // Черные границы
+        }
+      },
+      tableLineColor: [0, 0, 0], // Цвет границ таблицы
+      tableLineWidth: 0.5 // Толщина границ таблицы
+    });
+
+    // Сохраняем PDF
+    doc.save(`${recipe.name.replace(/[/\\?%*:|"<>]/g, '-')}.pdf`);
+
+  } catch (error) {
+    console.error('Ошибка при экспорте в PDF:', error);
+    alert('Ошибка при создании PDF: ' + error.message);
+  }
 }
+
 
 
 
