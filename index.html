@@ -497,7 +497,7 @@
     <table id="costTable">
       <thead>
         <tr>
-          <th><span class="material-icons-outlined">shopping_basket</span> Наименование</th>
+          <th><span class="material-icons-outlined">shopping_basket</span> Ингридиент</th>
           <th><span class="material-icons-outlined">scale</span> Кол-во в упак.</th>
           <th><span class="material-icons-outlined">attach_money</span> Цена упак.</th>
           <th><span class="material-icons-outlined">exposure_plus_1</span> Добавляемое</th>
@@ -507,6 +507,10 @@
       </thead>
       <tbody></tbody>
     </table>
+	<button onclick="addRow()" class="secondary" style="margin-top: 10px;">
+      <span class="material-icons-outlined">add</span>
+      Добавить
+    </button>
   </div>
 
   <!-- Таблица штучного товара -->
@@ -525,7 +529,7 @@
     </table>
     <button onclick="addPieceGoodsRow()" class="secondary" style="margin-top: 10px;">
       <span class="material-icons-outlined">add</span>
-      Добавить товар
+      Добавить
     </button>
   </div>
 
@@ -583,10 +587,7 @@
   </div>
 
   <div class="buttons-container">
-    <button onclick="addRow()">
-      <span class="material-icons-outlined">add</span>
-      Добавить
-    </button>
+
     <button onclick="calculateAll()" class="success">
       <span class="material-icons-outlined">calculate</span>
       Рассчитать
