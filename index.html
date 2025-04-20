@@ -32,9 +32,6 @@
     h2 {
       text-align: center;
       color: var(--accent);
-      word-wrap: break-word;
-      word-break: break-word;
-      white-space: normal;
     }
     .form-group {
       margin-bottom: 20px;
@@ -63,10 +60,6 @@
       border: 1px solid var(--border-color);
       padding: 12px;
       text-align: center;
-      overflow-wrap: break-word;
-      word-wrap: break-word;
-      word-break: keep-all;
-      white-space: normal;
     }
     th {
       background-color: #333;
@@ -81,7 +74,6 @@
       border-radius: 8px;
       cursor: pointer;
       margin: 5px;
-      transition: 0.3s;
     }
     button:hover {
       background-color: #29b6f6;
@@ -109,9 +101,6 @@
     .saved-item span {
       font-weight: bold;
     }
-    .saved-item button {
-      margin-left: 10px;
-    }
     .export-menu {
       margin-top: 15px;
       display: inline-block;
@@ -122,173 +111,162 @@
       border-radius: 8px;
       text-align: center;
     }
-    .export-menu-item {
-      display: block;
-      color: #fff;
-      margin: 10px 0;
-      text-decoration: none;
-      font-weight: bold;
-    }
-    .export-menu-item:hover {
-      color: #4fc3f7;
-    }
   </style>
 </head>
 <body>
-<h2>Калькулятор себестоимости продуктов</h2>
-<div class="form-group">
-  <label for="recipeName">Название рецепта:</label>
-  <input type="text" id="recipeName" placeholder="Введите название рецепта">
-</div>
-<div class="table-wrapper">
-  <table id="costTable">
-    <thead>
-      <tr>
-        <th>Наименование продукта</th>
-        <th>Количество в упаковке</th>
-        <th>Цена упаковки</th>
-        <th>Количество добавляемых продуктов</th>
-        <th>Сумма</th>
-        <th>Удалить</th>
-      </tr>
-    </thead>
-    <tbody></tbody>
-    <tfoot>
-      <tr id="totalRow">
-        <td colspan="4">Итого:</td>
-        <td id="totalCost">0.00</td>
-        <td></td>
-      </tr>
-    </tfoot>
-  </table>
-</div>
-<button onclick="addRow()">Добавить строку</button>
-<button onclick="calculate()">Рассчитать</button>
-<button onclick="clearTable()">Очистить таблицу</button>
-<button onclick="saveResult()">Сохранить расчет</button>
+  <h2>Калькулятор себестоимости продуктов</h2>
+  <div class="form-group">
+    <label for="recipeName">Название рецепта:</label>
+    <input type="text" id="recipeName" placeholder="Введите название рецепта">
+  </div>
+  <div class="table-wrapper">
+    <table id="costTable">
+      <thead>
+        <tr>
+          <th>Наименование продукта</th>
+          <th>Количество в упаковке</th>
+          <th>Цена упаковки</th>
+          <th>Количество добавляемых продуктов</th>
+          <th>Сумма</th>
+          <th>Удалить</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+      <tfoot>
+        <tr id="totalRow">
+          <td colspan="4">Итого:</td>
+          <td id="totalCost">0.00</td>
+          <td></td>
+        </tr>
+      </tfoot>
+    </table>
+  </div>
+  <button onclick="addRow()">Добавить строку</button>
+  <button onclick="calculate()">Рассчитать</button>
+  <button onclick="clearTable()">Очистить таблицу</button>
+  <button onclick="saveResult()">Сохранить расчет</button>
+  
+  <div class="saved-list" id="savedList"></div>
 
-<div class="saved-list" id="savedList"></div>
+  <script>
+    let totalCalculated = false;
 
-<script>
-  let totalCalculated = false;
-
-  function addRow() {
-    const tbody = document.querySelector("#costTable tbody");
-    const row = document.createElement("tr");
-    row.innerHTML = `
-      <td><input type="text" placeholder="Название"></td>
-      <td><input type="number" step="any" placeholder="Кол-во"></td>
-      <td><input type="number" step="any" placeholder="Цена"></td>
-      <td><input type="number" step="any" placeholder="Кол-во"></td>
-      <td class="result"></td>
-      <td><button onclick="deleteRow(this)">❌</button></td>
-    `;
-    tbody.appendChild(row);
-  }
-
-  function deleteRow(btn) {
-    btn.closest("tr").remove();
-    calculate();
-  }
-
-  function calculate() {
-    let total = 0;
-    const rows = document.querySelectorAll("#costTable tbody tr");
-
-    rows.forEach(row => {
-      const cells = row.querySelectorAll("td");
-      const grams = parseFloat(cells[1].querySelector("input")?.value);
-      const price = parseFloat(cells[2].querySelector("input")?.value);
-      const quantity = parseFloat(cells[3].querySelector("input")?.value);
-      const resultCell = cells[4];
-
-      if (!isNaN(grams) && !isNaN(price) && !isNaN(quantity) && grams > 0) {
-        const cost = (price / grams) * quantity;
-        resultCell.textContent = cost.toFixed(2);
-        total += cost;
-      } else {
-        resultCell.textContent = '';
-      }
-    });
-
-    document.getElementById("totalCost").textContent = total.toFixed(2);
-    document.getElementById("totalRow").classList.add("highlight"); 
-    totalCalculated = true;
-  }
-
-  function saveResult() {
-    const name = document.getElementById("recipeName").value.trim();
-    if (!name) return alert("Введите название рецепта");
-    const total = document.getElementById("totalCost").textContent;
-    const item = { name, total };
-    let list = JSON.parse(localStorage.getItem("recipes") || "[]");
-    const exists = list.findIndex(i => i.name === name);
-    if (exists !== -1) list[exists] = item;
-    else list.push(item);
-    localStorage.setItem("recipes", JSON.stringify(list));
-    renderSaved();
-  }
-
-  function renderSaved() {
-    const list = JSON.parse(localStorage.getItem("recipes") || "[]");
-    const savedList = document.getElementById("savedList");
-    savedList.innerHTML = list.map(item => `
-      <div class="saved-item">
-        <span>${item.name}: ${item.total}</span>
-        <button onclick="shareResult('${item.name}', '${item.total}')">Поделиться</button>
-        <button onclick="exportRecipePDF('${item.name}', '${item.total}')">Экспорт в PDF</button>
-        <button onclick="exportRecipeExcel('${item.name}', '${item.total}')">Экспорт в Excel</button>
-        <button onclick="deleteSaved('${item.name}')">❌</button>
-      </div>
-    `).join('');
-  }
-
-  function deleteSaved(name) {
-    let list = JSON.parse(localStorage.getItem("recipes") || "[]");
-    list = list.filter(item => item.name !== name);
-    localStorage.setItem("recipes", JSON.stringify(list));
-    renderSaved();
-  }
-
-  function clearTable() {
-    document.getElementById("costTable").querySelector("tbody").innerHTML = '';
-    document.getElementById("recipeName").value = '';
-    document.getElementById("totalCost").textContent = '0.00';
-    totalCalculated = false;
-    renderSaved();
-  }
-
-  function shareResult(name, total) {
-    const message = `Рецепт: ${name}\nИтого: ${total}`;
-    if (navigator.share) {
-      navigator.share({
-        title: 'Поделиться рецептом',
-        text: message,
-      }).catch(console.error);
-    } else {
-      alert("Функция 'Поделиться' не поддерживается в вашем браузере.");
+    function addRow() {
+      const tbody = document.querySelector("#costTable tbody");
+      const row = document.createElement("tr");
+      row.innerHTML = `
+        <td><input type="text" placeholder="Название"></td>
+        <td><input type="number" step="any" placeholder="Кол-во"></td>
+        <td><input type="number" step="any" placeholder="Цена"></td>
+        <td><input type="number" step="any" placeholder="Кол-во"></td>
+        <td class="result"></td>
+        <td><button onclick="deleteRow(this)">❌</button></td>
+      `;
+      tbody.appendChild(row);
     }
-  }
 
-  function exportRecipePDF(name, total) {
-    const pdf = new jspdf.jsPDF();
-    pdf.text(`Рецепт: ${name}`, 10, 10);
-    pdf.text(`Итого: ${total}`, 10, 20);
-    pdf.save(`${name}.pdf`);
-  }
+    function deleteRow(btn) {
+      btn.closest("tr").remove();
+      calculate();
+    }
 
-  function exportRecipeExcel(name, total) {
-    const blob = new Blob([`Рецепт: ${name}\nИтого: ${total}`], { type: 'application/vnd.ms-excel' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `${name}.xls`;
-    a.click();
-    URL.revokeObjectURL(url);
-  }
+    function calculate() {
+      let total = 0;
+      const rows = document.querySelectorAll("#costTable tbody tr");
 
-  // Загружаем сохраненные рецепты при инициализации
-  window.onload = renderSaved;
-</script>
+      rows.forEach(row => {
+        const cells = row.querySelectorAll("td");
+        const grams = parseFloat(cells[1].querySelector("input")?.value);
+        const price = parseFloat(cells[2].querySelector("input")?.value);
+        const quantity = parseFloat(cells[3].querySelector("input")?.value);
+        const resultCell = cells[4];
+
+        if (!isNaN(grams) && !isNaN(price) && !isNaN(quantity) && grams > 0) {
+          const cost = (price / grams) * quantity;
+          resultCell.textContent = cost.toFixed(2);
+          total += cost;
+        } else {
+          resultCell.textContent = '';
+        }
+      });
+
+      document.getElementById("totalCost").textContent = total.toFixed(2);
+      document.getElementById("totalRow").classList.add("highlight");
+      totalCalculated = true;
+    }
+
+    function saveResult() {
+      const name = document.getElementById("recipeName").value.trim();
+      if (!name) return alert("Введите название рецепта");
+      const total = document.getElementById("totalCost").textContent;
+      const item = { name, total };
+      let list = JSON.parse(localStorage.getItem("recipes") || "[]");
+      const exists = list.findIndex(i => i.name === name);
+      if (exists !== -1) list[exists] = item;
+      else list.push(item);
+      localStorage.setItem("recipes", JSON.stringify(list));
+      renderSaved();
+    }
+
+    function renderSaved() {
+      const list = JSON.parse(localStorage.getItem("recipes") || "[]");
+      const savedList = document.getElementById("savedList");
+      savedList.innerHTML = list.map(item => `
+        <div class="saved-item">
+          <span>${item.name}: ${item.total}</span>
+          <button onclick="shareResult('${item.name}', '${item.total}')">Поделиться</button>
+          <button onclick="exportRecipePDF('${item.name}', '${item.total}')">Экспорт в PDF</button>
+          <button onclick="exportRecipeExcel('${item.name}', '${item.total}')">Экспорт в Excel</button>
+          <button onclick="deleteSaved('${item.name}')">❌</button>
+        </div>
+      `).join('');
+    }
+
+    function deleteSaved(name) {
+      let list = JSON.parse(localStorage.getItem("recipes") || "[]");
+      list = list.filter(item => item.name !== name);
+      localStorage.setItem("recipes", JSON.stringify(list));
+      renderSaved();
+    }
+
+    function clearTable() {
+      document.getElementById("costTable").querySelector("tbody").innerHTML = '';
+      document.getElementById("recipeName").value = '';
+      document.getElementById("totalCost").textContent = '0.00';
+      totalCalculated = false;
+      renderSaved();
+    }
+
+    function shareResult(name, total) {
+      const message = `Рецепт: ${name}\nИтого: ${total}`;
+      if (navigator.share) {
+        navigator.share({
+          title: 'Поделиться рецептом',
+          text: message,
+        }).catch(console.error);
+      } else {
+        alert("Функция 'Поделиться' не поддерживается в вашем браузере.");
+      }
+    }
+
+    function exportRecipePDF(name, total) {
+      const pdf = new jspdf.jsPDF();
+      pdf.text(`Рецепт: ${name}`, 10, 10);
+      pdf.text(`Итого: ${total}`, 10, 20);
+      pdf.save(`${name}.pdf`);
+    }
+
+    function exportRecipeExcel(name, total) {
+      const blob = new Blob([`Рецепт: ${name}\nИтого: ${total}`], { type: 'application/vnd.ms-excel' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${name}.xls`;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    window.onload = renderSaved;
+  </script>
 </body>
 </html>
