@@ -136,6 +136,7 @@
 <button onclick="addRow()">Добавить строку</button>
 <button onclick="calculate()">Рассчитать</button>
 <button onclick="saveResult()">Сохранить расчет</button>
+<button id="shareButton" style="display:none" onclick="shareResult()">Поделиться</button>
 <div class="saved-list" id="savedList"></div>
 <script>
   let totalCalculated = false;
@@ -176,6 +177,7 @@
     document.getElementById("totalCost").textContent = total.toFixed(2);
     document.getElementById("totalRow").classList.add("highlight");
     totalCalculated = true;
+    document.getElementById("shareButton").style.display = 'inline-block';
   }
   function saveResult() {
     const name = document.getElementById("recipeName").value.trim();
@@ -217,6 +219,19 @@
     const item = list.find(i => i.name === name);
     if (item) {
       alert(`Загружен рецепт: ${item.name}\nСумма: ${item.total}`);
+    }
+  }
+  function shareResult() {
+    if (navigator.share) {
+      const name = document.getElementById("recipeName").value.trim();
+      const total = document.getElementById("totalCost").textContent;
+      navigator.share({
+        title: name || 'Рецепт',
+        text: `Рецепт: ${name}\nСебестоимость: ${total}`,
+        url: location.href
+      });
+    } else {
+      alert("Ваш браузер не поддерживает функцию 'Поделиться'");
     }
   }
   window.onload = renderSaved;
