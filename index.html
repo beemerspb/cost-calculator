@@ -4,13 +4,10 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Калькулятор себестоимости</title>
-
-  <!-- Подключение манифеста PWA -->
   <link rel="manifest" href="manifest.json">
   <link rel="icon" href="https://fonts.gstatic.com/s/i/materialiconsoutlined/calculator/v6/24px.svg" sizes="192x192">
   <link rel="apple-touch-icon" href="https://fonts.gstatic.com/s/i/materialiconsoutlined/calculator/v6/48px.svg">
   <meta name="theme-color" content="#4fc3f7">
-
   <style>
     :root {
       --bg-color: #1e1e2f;
@@ -20,7 +17,6 @@
       --border-color: #444;
       --highlight-color: #76ff03;
     }
-
     body {
       margin: 0;
       padding: 20px;
@@ -30,25 +26,21 @@
       max-width: 960px;
       margin: auto;
     }
-
     h2 {
       text-align: center;
       color: var(--accent);
     }
-
     .table-wrapper {
       overflow-x: auto;
       border-radius: 10px;
       margin-bottom: 15px;
     }
-
     table {
       min-width: 700px;
       width: 100%;
       border-collapse: collapse;
       background-color: var(--card-color);
     }
-
     th, td {
       border: 1px solid var(--border-color);
       padding: 12px;
@@ -57,12 +49,10 @@
       word-break: break-word;
       white-space: normal;
     }
-
     th {
       background-color: #333;
       font-weight: bold;
     }
-
     input[type="text"],
     input[type="number"] {
       width: 100%;
@@ -73,7 +63,6 @@
       border-radius: 5px;
       box-sizing: border-box;
     }
-
     button {
       background-color: var(--accent);
       border: none;
@@ -85,69 +74,43 @@
       margin: 5px 5px 15px 0;
       transition: 0.3s;
     }
-
     button:hover {
       background-color: #29b6f6;
     }
-
     tfoot td {
       font-weight: bold;
       background-color: #222;
     }
-
     .highlight {
       background-color: var(--highlight-color) !important;
       color: #000 !important;
     }
-
-    .result {
+    .saved-list {
+      margin-top: 30px;
+    }
+    .saved-item {
+      background-color: #333;
+      padding: 10px;
+      border-radius: 6px;
+      margin-bottom: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .saved-item span {
       font-weight: bold;
-      color: #aed581;
     }
-
-    .share-menu {
-      display: none;
-      position: absolute;
-      background-color: var(--card-color);
-      border-radius: 8px;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-      padding: 15px;
-      top: 50px;
-      right: 10px;
-      z-index: 1000;
-    }
-
-    .share-menu button {
-      margin: 5px;
-      background-color: var(--accent);
-      color: #000;
-    }
-
-    .share-button {
-      margin-top: 15px;
-      background-color: var(--accent);
-      display: none;
-    }
-
-    @media (max-width: 768px) {
-      input {
-        font-size: 16px;
-      }
-      th, td {
-        font-size: 14px;
-        padding: 10px 6px;
-      }
-      button {
-        width: 100%;
-        margin-top: 10px;
-      }
+    .saved-item button {
+      margin-left: 10px;
     }
   </style>
 </head>
 <body>
-
 <h2>Калькулятор себестоимости продуктов</h2>
-
+<div>
+  <label for="recipeName">Название рецепта:</label>
+  <input type="text" id="recipeName" placeholder="Введите название рецепта">
+</div>
 <div class="table-wrapper">
   <table id="costTable">
     <thead>
@@ -160,8 +123,7 @@
         <th>Удалить</th>
       </tr>
     </thead>
-    <tbody>
-    </tbody>
+    <tbody></tbody>
     <tfoot>
       <tr id="totalRow">
         <td colspan="4">Итого:</td>
@@ -171,20 +133,12 @@
     </tfoot>
   </table>
 </div>
-
 <button onclick="addRow()">Добавить строку</button>
 <button onclick="calculate()">Рассчитать</button>
-<button onclick="clearResults()">Очистить результаты</button>
-<button class="share-button" id="shareButton" onclick="toggleShareMenu()">Поделиться</button>
-<div class="share-menu" id="shareMenu">
-  <button onclick="shareFormat('pdf')">PDF</button>
-  <button onclick="shareFormat('word')">Word</button>
-  <button onclick="shareFormat('excel')">Excel</button>
-</div>
-
+<button onclick="saveResult()">Сохранить расчет</button>
+<div class="saved-list" id="savedList"></div>
 <script>
   let totalCalculated = false;
-
   function addRow() {
     const tbody = document.querySelector("#costTable tbody");
     const row = document.createElement("tr");
@@ -198,12 +152,10 @@
     `;
     tbody.appendChild(row);
   }
-
   function deleteRow(btn) {
     btn.closest("tr").remove();
     calculate();
   }
-
   function calculate() {
     let total = 0;
     const rows = document.querySelectorAll("#costTable tbody tr");
@@ -213,7 +165,6 @@
       const price = parseFloat(cells[2].querySelector("input")?.value);
       const quantity = parseFloat(cells[3].querySelector("input")?.value);
       const resultCell = cells[4];
-
       if (!isNaN(grams) && !isNaN(price) && !isNaN(quantity) && grams > 0) {
         const cost = (price / grams) * quantity;
         resultCell.textContent = cost.toFixed(2);
@@ -225,74 +176,50 @@
     document.getElementById("totalCost").textContent = total.toFixed(2);
     document.getElementById("totalRow").classList.add("highlight");
     totalCalculated = true;
-    toggleShareButton();
   }
-
-  function toggleShareButton() {
-    document.getElementById("shareButton").style.display = totalCalculated ? "inline-block" : "none";
-  }
-
-  function toggleShareMenu() {
-    const menu = document.getElementById("shareMenu");
-    menu.style.display = menu.style.display === "none" || menu.style.display === "" ? "block" : "none";
-  }
-
-  async function shareFormat(format) {
+  function saveResult() {
+    const name = document.getElementById("recipeName").value.trim();
+    if (!name) return alert("Введите название рецепта");
     const total = document.getElementById("totalCost").textContent;
-    let content = `Калькулятор себестоимости\nИтого: ${total}`;
-
-    let blob;
-    if (format === 'pdf') {
-      blob = new Blob([content], { type: 'application/pdf' });
-    } else if (format === 'word') {
-      blob = new Blob([`<html><body><p>${content}</p></body></html>`], { type: 'application/msword' });
-    } else if (format === 'excel') {
-      blob = new Blob([content], { type: 'application/vnd.ms-excel' });
-    }
-
-    const file = new File([blob], `итог.${format}`);
-    if (navigator.canShare && navigator.canShare({ files: [file] })) {
-      await navigator.share({
-        title: 'Себестоимость',
-        text: 'Результаты калькуляции',
-        files: [file]
-      });
-    } else {
-      alert("Ваше устройство не поддерживает системное меню 'Поделиться' с файлами.");
-
-      // Попытка поделиться текстом
-      if (navigator.share) {
-        try {
-          await navigator.share({
-            title: 'Себестоимость',
-            text: content
-          });
-        } catch (err) {
-          console.warn("Ошибка при вызове navigator.share:", err);
-        }
-      } else {
-        // Копируем в буфер обмена
-        try {
-          await navigator.clipboard.writeText(content);
-          alert("Результат скопирован в буфер обмена");
-        } catch (err) {
-          alert("Не удалось скопировать в буфер обмена");
-        }
-      }
-    }
+    const item = { name, total };
+    let list = JSON.parse(localStorage.getItem("recipes") || "[]");
+    const exists = list.findIndex(i => i.name === name);
+    if (exists !== -1) list[exists] = item;
+    else list.push(item);
+    localStorage.setItem("recipes", JSON.stringify(list));
+    renderSaved();
   }
-
-  function clearResults() {
-    document.querySelectorAll("#costTable tbody tr").forEach(row => {
-      row.querySelectorAll("input").forEach(input => input.value = '');
-      row.querySelector(".result").textContent = '';
+  function deleteSaved(name) {
+    let list = JSON.parse(localStorage.getItem("recipes") || "[]");
+    list = list.filter(i => i.name !== name);
+    localStorage.setItem("recipes", JSON.stringify(list));
+    renderSaved();
+  }
+  function renderSaved() {
+    const container = document.getElementById("savedList");
+    container.innerHTML = '<h3>Сохраненные рецепты:</h3>';
+    const list = JSON.parse(localStorage.getItem("recipes") || "[]");
+    list.forEach(item => {
+      const div = document.createElement("div");
+      div.className = "saved-item";
+      div.innerHTML = `
+        <span>${item.name}: ${item.total}</span>
+        <div>
+          <button onclick="loadSaved('${item.name}')">Загрузить</button>
+          <button onclick="deleteSaved('${item.name}')">Удалить</button>
+        </div>
+      `;
+      container.appendChild(div);
     });
-    document.getElementById("totalCost").textContent = '0.00';
-    document.getElementById("totalRow").classList.remove("highlight");
-    totalCalculated = false;
-    toggleShareButton();
   }
+  function loadSaved(name) {
+    const list = JSON.parse(localStorage.getItem("recipes") || "[]");
+    const item = list.find(i => i.name === name);
+    if (item) {
+      alert(`Загружен рецепт: ${item.name}\nСумма: ${item.total}`);
+    }
+  }
+  window.onload = renderSaved;
 </script>
-
 </body>
 </html>
