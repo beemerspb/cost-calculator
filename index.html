@@ -74,11 +74,15 @@
       border-radius: 12px;
       box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
       margin-bottom: 30px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
     }
     
     .form-group {
       margin-bottom: 25px;
       position: relative;
+      flex: 1 1 300px;
     }
     
     .form-group label {
@@ -111,6 +115,40 @@
     
     .form-group input.required:valid {
       border-color: var(--success-color);
+    }
+    
+    .settings-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+      margin-bottom: 20px;
+    }
+    
+    .settings-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    .settings-item label {
+      font-weight: 500;
+      color: var(--accent);
+    }
+    
+    .settings-item select {
+      padding: 10px 12px;
+      background-color: var(--input-bg);
+      color: var(--text-color);
+      border: 2px solid var(--border-color);
+      border-radius: 8px;
+      font-size: 14px;
+      transition: all 0.3s;
+    }
+    
+    .settings-item select:focus {
+      border-color: var(--accent);
+      outline: none;
+      box-shadow: 0 0 0 2px rgba(79, 195, 247, 0.3);
     }
     
     .buttons-container {
@@ -289,6 +327,7 @@
       
       .form-group {
         margin-bottom: 15px;
+        flex: 1 1 100%;
       }
       
       .form-group label {
@@ -300,6 +339,15 @@
         padding: 12px 14px;
         font-size: 1rem;
         border-radius: 6px;
+      }
+      
+      .settings-group {
+        flex-direction: column;
+        gap: 10px;
+      }
+      
+      .settings-item {
+        width: 100%;
       }
       
       .buttons-container {
@@ -469,7 +517,7 @@
     
     /* Улучшение для iOS */
     @supports (-webkit-touch-callout: none) {
-      input, button {
+      input, button, select {
         -webkit-appearance: none;
       }
     }
@@ -479,16 +527,36 @@
 <div class="container">
   <h2>
     <span class="material-icons-outlined">calculate</span>
-    Калькулятор себестоимости
+    <span id="appTitle">Калькулятор себестоимости</span>
   </h2>
+
+  <div class="settings-group">
+    <div class="settings-item">
+      <label for="languageSelect"><span class="material-icons-outlined">language</span> <span id="languageLabel">Язык:</span></label>
+      <select id="languageSelect" onchange="changeLanguage()">
+        <option value="ru">Русский</option>
+        <option value="ro">Română</option>
+        <option value="en">English</option>
+        <option value="de">Deutsch</option>
+      </select>
+    </div>
+    
+    <div class="settings-item">
+      <label for="currencySelect"><span class="material-icons-outlined">paid</span> <span id="currencyLabel">Валюта:</span></label>
+      <select id="currencySelect" onchange="changeCurrency()">
+        <option value="EUR">EUR (€)</option>
+        <option value="RUB">RUB (₽)</option>
+      </select>
+    </div>
+  </div>
 
   <div class="form-container">
     <div class="form-group">
       <label for="recipeName">
         <span class="material-icons-outlined">title</span>
-        Название рецепта:
+        <span id="recipeNameLabel">Название рецепта:</span>
       </label>
-      <input type="text" id="recipeName" class="required" placeholder="Введите название рецепта" required>
+      <input type="text" id="recipeName" class="required" placeholder="" required>
     </div>
   </div>
 
@@ -497,19 +565,19 @@
     <table id="costTable">
       <thead>
         <tr>
-          <th><span class="material-icons-outlined">shopping_basket</span> Ингридиент</th>
-          <th><span class="material-icons-outlined">scale</span> Кол-во в упак.</th>
-          <th><span class="material-icons-outlined">attach_money</span> Цена упак.</th>
-          <th><span class="material-icons-outlined">exposure_plus_1</span> Добавляемое</th>
-          <th><span class="material-icons-outlined">sum</span> Сумма</th>
+          <th><span class="material-icons-outlined">shopping_basket</span> <span id="ingredientHeader">Ингридиент</span></th>
+          <th><span class="material-icons-outlined">scale</span> <span id="quantityHeader">Кол-во в упак.</span></th>
+          <th><span class="material-icons-outlined">attach_money</span> <span id="priceHeader">Цена упак.</span></th>
+          <th><span class="material-icons-outlined">exposure_plus_1</span> <span id="addedHeader">Добавляемое</span></th>
+          <th><span class="material-icons-outlined">sum</span> <span id="sumHeader">Сумма</span></th>
           <th><span class="material-icons-outlined">delete</span></th>
         </tr>
       </thead>
       <tbody></tbody>
     </table>
-	<button onclick="addRow()" class="secondary" style="margin-top: 10px;">
+    <button onclick="addRow()" class="secondary" style="margin-top: 10px;">
       <span class="material-icons-outlined">add</span>
-      Добавить
+      <span id="addButton">Добавить</span>
     </button>
   </div>
 
@@ -518,10 +586,10 @@
     <table id="pieceGoodsTable">
       <thead>
         <tr>
-          <th><span class="material-icons-outlined">inventory_2</span> Штучный товар</th>
-          <th><span class="material-icons-outlined">numbers</span> Кол-во</th>
-          <th><span class="material-icons-outlined">payments</span> Цена (₽)</th>
-          <th><span class="material-icons-outlined">sum</span> Сумма</th>
+          <th><span class="material-icons-outlined">inventory_2</span> <span id="pieceGoodsHeader">Штучный товар</span></th>
+          <th><span class="material-icons-outlined">numbers</span> <span id="countHeader">Кол-во</span></th>
+          <th><span class="material-icons-outlined">payments</span> <span id="piecePriceHeader">Цена</span></th>
+          <th><span class="material-icons-outlined">sum</span> <span id="pieceSumHeader">Сумма</span></th>
           <th><span class="material-icons-outlined">delete</span></th>
         </tr>
       </thead>
@@ -529,7 +597,7 @@
     </table>
     <button onclick="addPieceGoodsRow()" class="secondary" style="margin-top: 10px;">
       <span class="material-icons-outlined">add</span>
-      Добавить
+      <span id="addPieceButton">Добавить</span>
     </button>
   </div>
 
@@ -538,16 +606,16 @@
     <table id="electricityTable">
       <thead>
         <tr>
-          <th><span class="material-icons-outlined">bolt</span> Электричество</th>
-          <th><span class="material-icons-outlined">schedule</span> Время (ч)</th>
-          <th><span class="material-icons-outlined">electrical_services</span> Мощность (кВт)</th>
-          <th><span class="material-icons-outlined">payments</span> Цена (₽)</th>
-          <th><span class="material-icons-outlined">sum</span> Сумма</th>
+          <th><span class="material-icons-outlined">bolt</span> <span id="electricityHeader">Электричество</span></th>
+          <th><span class="material-icons-outlined">schedule</span> <span id="timeHeader">Время (ч)</span></th>
+          <th><span class="material-icons-outlined">electrical_services</span> <span id="powerHeader">Мощность (кВт)</span></th>
+          <th><span class="material-icons-outlined">payments</span> <span id="electricityPriceHeader">Цена</span></th>
+          <th><span class="material-icons-outlined">sum</span> <span id="electricitySumHeader">Сумма</span></th>
         </tr>
       </thead>
       <tbody>
         <tr>
-          <td>Энергозатраты</td>
+          <td><span id="energyCostsLabel">Энергозатраты</span></td>
           <td><input type="number" id="electricityHours" step="0.1" min="0" value="0" class="electricity-input"></td>
           <td><input type="number" id="electricityPower" step="0.1" min="0" value="0" class="electricity-input"></td>
           <td><input type="number" id="electricityPrice" step="0.01" min="0" value="0" class="electricity-input"></td>
@@ -562,64 +630,311 @@
     <table id="totalTable">
       <thead>
         <tr>
-          <th colspan="2"><span class="material-icons-outlined">receipt_long</span> Итоговые затраты</th>
+          <th colspan="2"><span class="material-icons-outlined">receipt_long</span> <span id="totalCostsHeader">Итоговые затраты</span></th>
         </tr>
       </thead>
       <tbody>
         <tr>
-          <td>Продукты:</td>
-          <td id="productsTotal">0.00 ₽</td>
+          <td><span id="productsLabel">Продукты:</span></td>
+          <td id="productsTotal">0.00</td>
         </tr>
         <tr>
-          <td>Штучный товар:</td>
-          <td id="pieceGoodsTotal">0.00 ₽</td>
+          <td><span id="pieceGoodsLabel">Штучный товар:</span></td>
+          <td id="pieceGoodsTotal">0.00</td>
         </tr>
         <tr>
-          <td>Электричество:</td>
-          <td id="electricityTotal">0.00 ₽</td>
+          <td><span id="electricityLabel">Электричество:</span></td>
+          <td id="electricityTotal">0.00</td>
         </tr>
         <tr id="finalTotalRow">
-          <td><strong>Общая сумма:</strong></td>
-          <td id="finalTotal">0.00 ₽</td>
+          <td><strong><span id="totalLabel">Общая сумма:</span></strong></td>
+          <td id="finalTotal">0.00</td>
         </tr>
       </tbody>
     </table>
   </div>
 
   <div class="buttons-container">
-
     <button onclick="calculateAll()" class="success">
       <span class="material-icons-outlined">calculate</span>
-      Рассчитать
+      <span id="calculateButton">Рассчитать</span>
     </button>
     <button onclick="clearAllTables()" class="danger">
       <span class="material-icons-outlined">delete_sweep</span>
-      Очистить
+      <span id="clearButton">Очистить</span>
     </button>
     <button id="saveBtn" onclick="saveResult()" style="display: none;" class="secondary">
       <span class="material-icons-outlined">save</span>
-      Сохранить
+      <span id="saveButton">Сохранить</span>
     </button>
   </div>
 
   <div class="saved-list" id="savedList">
     <div class="empty-state" id="emptyState">
       <span class="material-icons-outlined">inventory_2</span>
-      <p>Сохранённые рецепты появятся здесь</p>
+      <p id="emptyStateText">Сохранённые рецепты появятся здесь</p>
     </div>
   </div>
 </div>
 
 <script>
+  // Тексты для разных языков
+  const translations = {
+    ru: {
+      appTitle: "Калькулятор себестоимости",
+      languageLabel: "Язык:",
+      currencyLabel: "Валюта:",
+      recipeNameLabel: "Название рецепта:",
+      recipeNamePlaceholder: "Введите название рецепта",
+      ingredientHeader: "Ингридиент",
+      quantityHeader: "Кол-во в упак.",
+      priceHeader: "Цена упак.",
+      addedHeader: "Добавляемое",
+      sumHeader: "Сумма",
+      addButton: "Добавить",
+      pieceGoodsHeader: "Штучный товар",
+      countHeader: "Кол-во",
+      piecePriceHeader: "Цена",
+      pieceSumHeader: "Сумма",
+      addPieceButton: "Добавить",
+      electricityHeader: "Электричество",
+      timeHeader: "Время (ч)",
+      powerHeader: "Мощность (кВт)",
+      electricityPriceHeader: "Цена",
+      electricitySumHeader: "Сумма",
+      energyCostsLabel: "Энергозатраты",
+      totalCostsHeader: "Итоговые затраты",
+      productsLabel: "Продукты:",
+      pieceGoodsLabel: "Штучный товар:",
+      electricityLabel: "Электричество:",
+      totalLabel: "Общая сумма:",
+      calculateButton: "Рассчитать",
+      clearButton: "Очистить",
+      saveButton: "Сохранить",
+      emptyStateText: "Сохранённые рецепты появятся здесь",
+      confirmClear: "Очистить все данные? Все несохранённые данные будут потеряны.",
+      confirmOverwrite: "Рецепт \"{name}\" уже существует. Перезаписать?",
+      confirmDelete: "Удалить рецепт \"{name}\"?",
+      requiredField: "Пожалуйста, введите название рецепта",
+      pdfTitle: "Калькулятор себестоимости",
+      productsPdf: "Продукты:",
+      pieceGoodsPdf: "Штучный товар:",
+      electricityPdf: "Электричество:",
+      workingTime: "Время работы",
+      power: "Мощность",
+      pricePerKwh: "Цена за кВт·ч",
+      totalCost: "Общая стоимость"
+    },
+    en: {
+      appTitle: "Cost Calculator",
+      languageLabel: "Language:",
+      currencyLabel: "Currency:",
+      recipeNameLabel: "Recipe name:",
+      recipeNamePlaceholder: "Enter recipe name",
+      ingredientHeader: "Ingredient",
+      quantityHeader: "Package quantity",
+      priceHeader: "Package price",
+      addedHeader: "Added",
+      sumHeader: "Sum",
+      addButton: "Add",
+      pieceGoodsHeader: "Piece goods",
+      countHeader: "Count",
+      piecePriceHeader: "Price",
+      pieceSumHeader: "Sum",
+      addPieceButton: "Add",
+      electricityHeader: "Electricity",
+      timeHeader: "Time (h)",
+      powerHeader: "Power (kW)",
+      electricityPriceHeader: "Price",
+      electricitySumHeader: "Sum",
+      energyCostsLabel: "Energy costs",
+      totalCostsHeader: "Total costs",
+      productsLabel: "Products:",
+      pieceGoodsLabel: "Piece goods:",
+      electricityLabel: "Electricity:",
+      totalLabel: "Total:",
+      calculateButton: "Calculate",
+      clearButton: "Clear",
+      saveButton: "Save",
+      emptyStateText: "Saved recipes will appear here",
+      confirmClear: "Clear all data? All unsaved data will be lost.",
+      confirmOverwrite: "Recipe \"{name}\" already exists. Overwrite?",
+      confirmDelete: "Delete recipe \"{name}\"?",
+      requiredField: "Please enter recipe name",
+      pdfTitle: "Cost Calculator",
+      productsPdf: "Products:",
+      pieceGoodsPdf: "Piece goods:",
+      electricityPdf: "Electricity:",
+      workingTime: "Working time",
+      power: "Power",
+      pricePerKwh: "Price per kWh",
+      totalCost: "Total cost"
+    },
+    de: {
+      appTitle: "Kostenrechner",
+      languageLabel: "Sprache:",
+      currencyLabel: "Währung:",
+      recipeNameLabel: "Rezeptname:",
+      recipeNamePlaceholder: "Rezeptnamen eingeben",
+      ingredientHeader: "Zutat",
+      quantityHeader: "Menge in Packung",
+      priceHeader: "Packungspreis",
+      addedHeader: "Hinzugefügt",
+      sumHeader: "Summe",
+      addButton: "Hinzufügen",
+      pieceGoodsHeader: "Stückwaren",
+      countHeader: "Anzahl",
+      piecePriceHeader: "Preis",
+      pieceSumHeader: "Summe",
+      addPieceButton: "Hinzufügen",
+      electricityHeader: "Strom",
+      timeHeader: "Zeit (h)",
+      powerHeader: "Leistung (kW)",
+      electricityPriceHeader: "Preis",
+      electricitySumHeader: "Summe",
+      energyCostsLabel: "Energiekosten",
+      totalCostsHeader: "Gesamtkosten",
+      productsLabel: "Produkte:",
+      pieceGoodsLabel: "Stückwaren:",
+      electricityLabel: "Strom:",
+      totalLabel: "Gesamtsumme:",
+      calculateButton: "Berechnen",
+      clearButton: "Löschen",
+      saveButton: "Speichern",
+      emptyStateText: "Gespeicherte Rezepte werden hier angezeigt",
+      confirmClear: "Alle Daten löschen? Alle nicht gespeicherten Daten gehen verloren.",
+      confirmOverwrite: "Rezept \"{name}\" existiert bereits. Überschreiben?",
+      confirmDelete: "Rezept \"{name}\" löschen?",
+      requiredField: "Bitte geben Sie den Rezeptnamen ein",
+      pdfTitle: "Kostenrechner",
+      productsPdf: "Produkte:",
+      pieceGoodsPdf: "Stückwaren:",
+      electricityPdf: "Strom:",
+      workingTime: "Arbeitszeit",
+      power: "Leistung",
+      pricePerKwh: "Preis pro kWh",
+      totalCost: "Gesamtkosten"
+    },
+    ro: {
+      appTitle: "Calculator de costuri",
+      languageLabel: "Limba:",
+      currencyLabel: "Valută:",
+      recipeNameLabel: "Nume rețetă:",
+      recipeNamePlaceholder: "Introduceți numele rețetei",
+      ingredientHeader: "Ingredient",
+      quantityHeader: "Cant. în pachet",
+      priceHeader: "Preț pachet",
+      addedHeader: "Adăugat",
+      sumHeader: "Sumă",
+      addButton: "Adăugați",
+      pieceGoodsHeader: "Bunuri pe bucată",
+      countHeader: "Cantitate",
+      piecePriceHeader: "Preț",
+      pieceSumHeader: "Sumă",
+      addPieceButton: "Adăugați",
+      electricityHeader: "Electricitate",
+      timeHeader: "Timp (h)",
+      powerHeader: "Putere (kW)",
+      electricityPriceHeader: "Preț",
+      electricitySumHeader: "Sumă",
+      energyCostsLabel: "Costuri energie",
+      totalCostsHeader: "Costuri totale",
+      productsLabel: "Produse:",
+      pieceGoodsLabel: "Bunuri pe bucată:",
+      electricityLabel: "Electricitate:",
+      totalLabel: "Total:",
+      calculateButton: "Calculează",
+      clearButton: "Șterge",
+      saveButton: "Salvează",
+      emptyStateText: "Rețetele salvate vor apărea aici",
+      confirmClear: "Ștergeți toate datele? Toate datele nesalvate se vor pierde.",
+      confirmOverwrite: "Rețeta \"{name}\" există deja. Suprascrieți?",
+      confirmDelete: "Ștergeți rețeta \"{name}\"?",
+      requiredField: "Vă rugăm să introduceți numele rețetei",
+      pdfTitle: "Calculator de costuri",
+      productsPdf: "Produse:",
+      pieceGoodsPdf: "Bunuri pe bucată:",
+      electricityPdf: "Electricitate:",
+      workingTime: "Timp de lucru",
+      power: "Putere",
+      pricePerKwh: "Preț per kWh",
+      totalCost: "Cost total"
+    }
+  };
+
+  // Текущий язык и валюта
+  let currentLanguage = 'ru';
+  let currentCurrency = 'EUR';
+  const currencySymbols = { EUR: '€', RUB: '₽' };
+
+  // Функция изменения языка
+  function changeLanguage() {
+    currentLanguage = document.getElementById('languageSelect').value;
+    updateTexts();
+  }
+
+  // Функция изменения валюты
+  function changeCurrency() {
+    currentCurrency = document.getElementById('currencySelect').value;
+    calculateAll();
+  }
+
+  // Функция обновления текстов на странице
+  function updateTexts() {
+    const lang = translations[currentLanguage];
+    
+    // Обновляем все текстовые элементы
+    document.getElementById('appTitle').textContent = lang.appTitle;
+    document.getElementById('languageLabel').textContent = lang.languageLabel;
+    document.getElementById('currencyLabel').textContent = lang.currencyLabel;
+    document.getElementById('recipeNameLabel').textContent = lang.recipeNameLabel;
+    document.getElementById('recipeName').placeholder = lang.recipeNamePlaceholder;
+    document.getElementById('ingredientHeader').textContent = lang.ingredientHeader;
+    document.getElementById('quantityHeader').textContent = lang.quantityHeader;
+    document.getElementById('priceHeader').textContent = lang.priceHeader;
+    document.getElementById('addedHeader').textContent = lang.addedHeader;
+    document.getElementById('sumHeader').textContent = lang.sumHeader;
+    document.getElementById('addButton').textContent = lang.addButton;
+    document.getElementById('pieceGoodsHeader').textContent = lang.pieceGoodsHeader;
+    document.getElementById('countHeader').textContent = lang.countHeader;
+    document.getElementById('piecePriceHeader').textContent = lang.piecePriceHeader;
+    document.getElementById('pieceSumHeader').textContent = lang.pieceSumHeader;
+    document.getElementById('addPieceButton').textContent = lang.addPieceButton;
+    document.getElementById('electricityHeader').textContent = lang.electricityHeader;
+    document.getElementById('timeHeader').textContent = lang.timeHeader;
+    document.getElementById('powerHeader').textContent = lang.powerHeader;
+    document.getElementById('electricityPriceHeader').textContent = lang.electricityPriceHeader;
+    document.getElementById('electricitySumHeader').textContent = lang.electricitySumHeader;
+    document.getElementById('energyCostsLabel').textContent = lang.energyCostsLabel;
+    document.getElementById('totalCostsHeader').textContent = lang.totalCostsHeader;
+    document.getElementById('productsLabel').textContent = lang.productsLabel;
+    document.getElementById('pieceGoodsLabel').textContent = lang.pieceGoodsLabel;
+    document.getElementById('electricityLabel').textContent = lang.electricityLabel;
+    document.getElementById('totalLabel').textContent = lang.totalLabel;
+    document.getElementById('calculateButton').textContent = lang.calculateButton;
+    document.getElementById('clearButton').textContent = lang.clearButton;
+    document.getElementById('saveButton').textContent = lang.saveButton;
+    document.getElementById('emptyStateText').textContent = lang.emptyStateText;
+    
+    // Обновляем сохраненные рецепты
+    renderSaved();
+  }
+
+  // Функция форматирования валюты
+  function formatCurrency(value) {
+    return value.toFixed(2) + ' ' + currencySymbols[currentCurrency];
+  }
+
   // Функция добавления строки в основную таблицу
   function addRow() {
+    const lang = translations[currentLanguage];
     const tbody = document.querySelector("#costTable tbody");
     const row = document.createElement("tr");
     row.innerHTML = `
-      <td><input type="text" placeholder="Название" class="required" required></td>
-      <td><input type="number" step="any" placeholder="Кол-во" min="0.01" class="required" required></td>
-      <td><input type="number" step="any" placeholder="Цена" min="0" class="required" required></td>
-      <td><input type="number" step="any" placeholder="Кол-во" min="0" class="required" required></td>
+      <td><input type="text" placeholder="${lang.ingredientHeader}" class="required" required></td>
+      <td><input type="number" step="any" placeholder="${lang.quantityHeader}" min="0.01" class="required" required></td>
+      <td><input type="number" step="any" placeholder="${lang.priceHeader}" min="0" class="required" required></td>
+      <td><input type="number" step="any" placeholder="${lang.addedHeader}" min="0" class="required" required></td>
       <td class="result">0.00</td>
       <td>
         <button onclick="deleteRow(this, 'costTable')" class="danger" style="padding: 6px; margin: 0;">
@@ -633,12 +948,13 @@
 
   // Функция добавления строки в таблицу штучного товара
   function addPieceGoodsRow() {
+    const lang = translations[currentLanguage];
     const tbody = document.querySelector("#pieceGoodsTable tbody");
     const row = document.createElement("tr");
     row.innerHTML = `
-      <td><input type="text" placeholder="Наименование" class="required" required></td>
-      <td><input type="number" step="1" placeholder="Кол-во" min="1" class="required" required></td>
-      <td><input type="number" step="0.01" placeholder="Цена" min="0" class="required" required></td>
+      <td><input type="text" placeholder="${lang.pieceGoodsHeader}" class="required" required></td>
+      <td><input type="number" step="1" placeholder="${lang.countHeader}" min="1" class="required" required></td>
+      <td><input type="number" step="0.01" placeholder="${lang.piecePriceHeader}" min="0" class="required" required></td>
       <td class="result">0.00</td>
       <td>
         <button onclick="deleteRow(this, 'pieceGoodsTable')" class="danger" style="padding: 6px; margin: 0;">
@@ -707,11 +1023,11 @@
     // Общий расчет
     const finalTotal = productsTotal + pieceGoodsTotal + electricityCost;
     
-    // Обновление итоговых значений
-    document.getElementById("productsTotal").textContent = productsTotal.toFixed(2) + " ₽";
-    document.getElementById("pieceGoodsTotal").textContent = pieceGoodsTotal.toFixed(2) + " ₽";
-    document.getElementById("electricityTotal").textContent = electricityCost.toFixed(2) + " ₽";
-    document.getElementById("finalTotal").textContent = finalTotal.toFixed(2) + " ₽";
+    // Обновление итоговых значений с учетом валюты
+    document.getElementById("productsTotal").textContent = formatCurrency(productsTotal);
+    document.getElementById("pieceGoodsTotal").textContent = formatCurrency(pieceGoodsTotal);
+    document.getElementById("electricityTotal").textContent = formatCurrency(electricityCost);
+    document.getElementById("finalTotal").textContent = formatCurrency(finalTotal);
 
     // Подсветка итоговой строки
     const finalTotalRow = document.getElementById("finalTotalRow");
@@ -723,9 +1039,10 @@
 
   // Функция сохранения результата
   function saveResult() {
+    const lang = translations[currentLanguage];
     const name = document.getElementById("recipeName").value.trim();
     if (!name) {
-      alert("Пожалуйста, введите название рецепта");
+      alert(lang.requiredField);
       document.getElementById("recipeName").focus();
       return;
     }
@@ -738,6 +1055,7 @@
     const item = { 
       name, 
       total: finalTotal,
+      currency: currentCurrency,
       productsTotal,
       pieceGoodsTotal,
       electricityTotal,
@@ -754,7 +1072,7 @@
     let list = JSON.parse(localStorage.getItem("recipes") || "[]");
     const exists = list.findIndex(i => i.name === name);
     if (exists !== -1) {
-      if (!confirm(`Рецепт "${name}" уже существует. Перезаписать?`)) return;
+      if (!confirm(lang.confirmOverwrite.replace('{name}', name))) return;
       list[exists] = item;
     } else {
       list.push(item);
@@ -800,7 +1118,8 @@
 
   // Функция очистки всех таблиц
   function clearAllTables() {
-    if (!confirm("Очистить все данные? Все несохранённые данные будут потеряны.")) return;
+    const lang = translations[currentLanguage];
+    if (!confirm(lang.confirmClear)) return;
     
     document.querySelector("#costTable tbody").innerHTML = '';
     document.querySelector("#pieceGoodsTable tbody").innerHTML = '';
@@ -809,10 +1128,10 @@
     document.getElementById("electricityPrice").value = '0';
     document.getElementById("electricityCost").textContent = '0.00';
     
-    document.getElementById("productsTotal").textContent = '0.00 ₽';
-    document.getElementById("pieceGoodsTotal").textContent = '0.00 ₽';
-    document.getElementById("electricityTotal").textContent = '0.00 ₽';
-    document.getElementById("finalTotal").textContent = '0.00 ₽';
+    document.getElementById("productsTotal").textContent = '0.00';
+    document.getElementById("pieceGoodsTotal").textContent = '0.00';
+    document.getElementById("electricityTotal").textContent = '0.00';
+    document.getElementById("finalTotal").textContent = '0.00';
     
     document.getElementById("recipeName").value = '';
     document.getElementById("finalTotalRow").classList.remove("highlight");
@@ -824,21 +1143,24 @@
   function renderSaved() {
     const list = JSON.parse(localStorage.getItem("recipes") || "[]");
     const savedList = document.getElementById("savedList");
+    const lang = translations[currentLanguage];
     
     if (list.length === 0) {
       savedList.innerHTML = `
         <div class="empty-state" id="emptyState">
           <span class="material-icons-outlined">inventory_2</span>
-          <p>Сохранённые рецепты появятся здесь</p>
+          <p>${lang.emptyStateText}</p>
         </div>
       `;
       return;
     }
     
-    savedList.innerHTML = list.map(item => `
+    savedList.innerHTML = list.map(item => {
+      const currencySymbol = currencySymbols[item.currency || 'EUR'];
+      return `
       <div class="saved-item">
         <span>
-          <strong>${item.name}</strong> - ${item.total} ₽
+          <strong>${item.name}</strong> - ${item.total.toFixed(2)} ${currencySymbol}
           <small style="display: block; color: #9e9e9e; font-size: 0.9em;">${item.date || ''}</small>
         </span>
         <div class="item-actions">
@@ -859,7 +1181,7 @@
           </button>
         </div>
       </div>
-    `).join('');
+    `}).join('');
   }
 
   // Функция загрузки рецепта для редактирования
@@ -868,6 +1190,12 @@
     
     // Очищаем все таблицы перед загрузкой новых данных
     clearAllTables();
+    
+    // Устанавливаем валюту
+    if (recipe.currency) {
+      document.getElementById('currencySelect').value = recipe.currency;
+      currentCurrency = recipe.currency;
+    }
     
     // Заполняем название рецепта
     document.getElementById("recipeName").value = recipe.name;
@@ -946,7 +1274,8 @@
 
   // Функция удаления сохраненного рецепта
   function deleteSaved(name) {
-    if (!confirm(`Удалить рецепт "${name}"?`)) return;
+    const lang = translations[currentLanguage];
+    if (!confirm(lang.confirmDelete.replace('{name}', name))) return;
     
     let list = JSON.parse(localStorage.getItem("recipes") || "[]");
     list = list.filter(item => item.name !== name);
@@ -957,35 +1286,37 @@
   // Функция поделиться результатом
   function shareResult(name, total) {
     const recipe = JSON.parse(localStorage.getItem("recipes")).find(r => r.name === name);
-    let message = `Рецепт: ${name}\nИтого: ${total} ₽\n\nСостав:\n`;
+    const lang = translations[currentLanguage];
+    const currencySymbol = currencySymbols[recipe.currency || 'EUR'];
+    
+    let message = `${lang.recipeNameLabel} ${name}\n${lang.totalLabel} ${total} ${currencySymbol}\n\n${lang.productsLabel}\n`;
     
     if (recipe.products && recipe.products.length > 0) {
-      message += "\nПродукты:\n";
       recipe.products.forEach(item => {
-        message += `- ${item.name}: ${item.quantity} × (${item.price} ₽ / ${item.grams}) = ${item.cost} ₽\n`;
+        message += `- ${item.name}: ${item.quantity} × (${item.price} ${currencySymbol} / ${item.grams}) = ${item.cost} ${currencySymbol}\n`;
       });
     }
     
     if (recipe.pieceGoods && recipe.pieceGoods.length > 0) {
-      message += "\nШтучный товар:\n";
+      message += `\n${lang.pieceGoodsLabel}\n`;
       recipe.pieceGoods.forEach(item => {
-        message += `- ${item.name}: ${item.quantity} × ${item.price} ₽ = ${item.cost} ₽\n`;
+        message += `- ${item.name}: ${item.quantity} × ${item.price} ${currencySymbol} = ${item.cost} ${currencySymbol}\n`;
       });
     }
     
     if (recipe.electricity) {
-      message += `\nЭлектричество: ${recipe.electricity.hours} ч × ${recipe.electricity.power} кВт × ${recipe.electricity.price} ₽ = ${recipe.electricityTotal} ₽\n`;
+      message += `\n${lang.electricityLabel} ${recipe.electricity.hours} ${lang.timeHeader} × ${recipe.electricity.power} ${lang.powerHeader} × ${recipe.electricity.price} ${currencySymbol} = ${recipe.electricityTotal} ${currencySymbol}\n`;
     }
     
-    message += `\nОбщая стоимость: ${total} ₽`;
+    message += `\n${lang.totalLabel} ${total} ${currencySymbol}`;
     
     if (navigator.share) {
       navigator.share({
-        title: 'Поделиться рецептом',
+        title: lang.appTitle,
         text: message,
       }).catch(console.error);
     } else {
-      alert(message + "\n\nСкопируйте эту информацию для отправки");
+      alert(message + "\n\n" + lang.copyForSharing);
     }
   }
 
@@ -998,6 +1329,8 @@
 
       const recipe = JSON.parse(decodeURIComponent(recipeData));
       const { jsPDF } = window.jspdf;
+      const lang = translations[currentLanguage];
+      const currencySymbol = currencySymbols[recipe.currency || 'EUR'];
       
       const doc = new jsPDF({
         orientation: 'portrait',
@@ -1012,29 +1345,34 @@
       // Заголовок документа
       doc.setFontSize(20);
       doc.setTextColor(40);
-      doc.text('Калькулятор себестоимости', 105, 20, { align: 'center' });
+      doc.text(lang.pdfTitle, 105, 20, { align: 'center' });
 
       // Основная информация
       doc.setFontSize(16);
-      doc.text(`Рецепт: ${recipe.name}`, 20, 30);
+      doc.text(`${lang.recipeNameLabel} ${recipe.name}`, 20, 30);
       doc.setFontSize(12);
       doc.setTextColor(100);
-      doc.text(`Дата: ${recipe.date}`, 20, 37);
+      doc.text(`${lang.dateLabel || 'Дата:'} ${recipe.date}`, 20, 37);
       doc.setTextColor(0);
 
       // Подготовка данных для таблиц
-      const headers = ["Наименование", "Кол-во", "Цена", "Стоимость"];
+      const headers = [
+        lang.ingredientHeader, 
+        lang.quantityHeader, 
+        lang.priceHeader, 
+        lang.sumHeader
+      ];
       
       // Таблица продуктов
       if (recipe.products && recipe.products.length > 0) {
         doc.setFontSize(14);
-        doc.text("Продукты:", 20, 50);
+        doc.text(lang.productsPdf, 20, 50);
         
         const productsBody = recipe.products.map(item => [
           item.name,
           `${item.quantity} (${item.grams})`,
-          item.price,
-          item.cost
+          `${item.price} ${currencySymbol}`,
+          `${item.cost} ${currencySymbol}`
         ]);
         
         doc.autoTable({
@@ -1066,13 +1404,13 @@
       if (recipe.pieceGoods && recipe.pieceGoods.length > 0) {
         const startY = doc.lastAutoTable.finalY + 10;
         doc.setFontSize(14);
-        doc.text("Штучный товар:", 20, startY);
+        doc.text(lang.pieceGoodsPdf, 20, startY);
         
         const pieceGoodsBody = recipe.pieceGoods.map(item => [
           item.name,
           item.quantity,
-          item.price,
-          item.cost
+          `${item.price} ${currencySymbol}`,
+          `${item.cost} ${currencySymbol}`
         ]);
         
         doc.autoTable({
@@ -1104,16 +1442,16 @@
       if (recipe.electricity) {
         const startY = doc.lastAutoTable ? doc.lastAutoTable.finalY + 10 : 55;
         doc.setFontSize(14);
-        doc.text("Электричество:", 20, startY);
+        doc.text(lang.electricityPdf, 20, startY);
         
         doc.autoTable({
           startY: startY + 5,
           head: [["Параметр", "Значение", "Стоимость"]],
           body: [
-            ["Время работы", `${recipe.electricity.hours} ч`, ""],
-            ["Мощность", `${recipe.electricity.power} кВт`, ""],
-            ["Цена за кВт·ч", `${recipe.electricity.price} ₽`, ""],
-            ["Итого", "", `${recipe.electricityTotal} ₽`]
+            [lang.workingTime, `${recipe.electricity.hours} ${lang.timeHeader}`, ""],
+            [lang.power, `${recipe.electricity.power} ${lang.powerHeader}`, ""],
+            [lang.pricePerKwh, `${recipe.electricity.price} ${currencySymbol}`, ""],
+            ["Итого", "", `${recipe.electricityTotal} ${currencySymbol}`]
           ],
           margin: { left: 20 },
           headStyles: {
@@ -1139,7 +1477,7 @@
       const finalY = doc.lastAutoTable.finalY + 15;
       doc.setFontSize(16);
       doc.setTextColor(40);
-      doc.text(`Общая стоимость: ${recipe.total} ₽`, 20, finalY);
+      doc.text(`${lang.totalCost}: ${recipe.total} ${currencySymbol}`, 20, finalY);
 
       // Сохраняем PDF
       doc.save(`${recipe.name.replace(/[/\\?%*:|"<>]/g, '-')}.pdf`);
@@ -1153,6 +1491,8 @@
   // Функция экспорта в Excel
   function exportRecipeExcel(recipeData) {
     const recipe = JSON.parse(decodeURIComponent(recipeData));
+    const lang = translations[currentLanguage];
+    const currencySymbol = currencySymbols[recipe.currency || 'EUR'];
     
     // Создаем рабочую книгу
     const wb = XLSX.utils.book_new();
@@ -1161,61 +1501,72 @@
     const data = [];
     
     // Заголовок
-    data.push(["Калькулятор себестоимости"]);
-    data.push([`Рецепт: ${recipe.name}`]);
-    data.push([`Дата: ${recipe.date}`]);
+    data.push([lang.pdfTitle]);
+    data.push([`${lang.recipeNameLabel} ${recipe.name}`]);
+    data.push([`${lang.dateLabel || 'Дата:'} ${recipe.date}`]);
     data.push([]);
     
     // Продукты
     if (recipe.products && recipe.products.length > 0) {
-      data.push(["Продукты:"]);
-      data.push(["Наименование", "Кол-во в упаковке", "Цена упаковки", "Добавляемое кол-во", "Стоимость"]);
+      data.push([lang.productsPdf]);
+      data.push([
+        lang.ingredientHeader, 
+        lang.quantityHeader, 
+        lang.priceHeader, 
+        lang.addedHeader, 
+        lang.sumHeader
+      ]);
       
       recipe.products.forEach(item => {
         data.push([
           item.name,
           item.grams,
-          item.price,
+          `${item.price} ${currencySymbol}`,
           item.quantity,
-          item.cost
+          `${item.cost} ${currencySymbol}`
         ]);
       });
       
-      data.push(["", "", "", "Итого:", recipe.productsTotal]);
+      data.push(["", "", "", lang.totalLabel, `${recipe.productsTotal} ${currencySymbol}`]);
       data.push([]);
     }
     
     // Штучный товар
     if (recipe.pieceGoods && recipe.pieceGoods.length > 0) {
-      data.push(["Штучный товар:"]);
-      data.push(["Наименование", "Количество", "Цена за штуку", "Стоимость"]);
+      data.push([lang.pieceGoodsPdf]);
+      data.push([
+        lang.pieceGoodsHeader, 
+        lang.countHeader, 
+        lang.piecePriceHeader, 
+        lang.pieceSumHeader
+      ]);
       
       recipe.pieceGoods.forEach(item => {
         data.push([
           item.name,
           item.quantity,
-          item.price,
-          item.cost
+          `${item.price} ${currencySymbol}`,
+          `${item.cost} ${currencySymbol}`
         ]);
       });
       
-      data.push(["", "", "Итого:", recipe.pieceGoodsTotal]);
+      data.push(["", "", lang.totalLabel, `${recipe.pieceGoodsTotal} ${currencySymbol}`]);
       data.push([]);
     }
     
     // Электричество
     if (recipe.electricity) {
-      data.push(["Электричество:"]);
+      data.push([lang.electricityPdf]);
       data.push(["Параметр", "Значение", "Стоимость"]);
-      data.push(["Время работы", `${recipe.electricity.hours} ч`, ""]);
-      data.push(["Мощность", `${recipe.electricity.power} кВт`, ""]);
-      data.push(["Цена за кВт·ч", `${recipe.electricity.price} ₽`, ""]);
-      data.push(["Итого", "", recipe.electricityTotal]);
+      data.push([lang.workingTime, `${recipe.electricity.hours} ${lang.timeHeader}`, ""]);
+      data.push([lang.power, `${recipe.electricity.power} ${lang.powerHeader}`, ""]);
+      data.push([lang.pricePerKwh, `${recipe.electricity.price} ${currencySymbol}`, ""]);
+      data.push([lang.totalLabel, "", `${recipe.electricityTotal} ${currencySymbol}`]);
       data.push([]);
     }
     
     // Итоговая сумма
-    data.push(["Общая стоимость:", "", "", recipe.total]);
+    data.push([lang.totalLabel, "", "", `${recipe.total} ${currencySymbol}`]);
     
     // Создаем лист
     const ws = XLSX.utils.aoa_to_sheet(data);
@@ -1229,8 +1580,32 @@
       { wch: 15 }  // Стоимость
     ];
     
+    // Добавляем форматирование для заголовков
+    const range = XLSX.utils.decode_range(ws['!ref']);
+    for (let C = range.s.c; C <= range.e.c; ++C) {
+      const cellAddress = XLSX.utils.encode_cell({r: 0, c: C});
+      if (ws[cellAddress]) {
+        ws[cellAddress].s = { // Стиль для заголовка
+          font: { bold: true, color: { rgb: "FFFFFF" } },
+          fill: { fgColor: { rgb: "3D5A80" } },
+          alignment: { horizontal: "center" }
+        };
+      }
+    }
+    
+    // Форматирование итоговых строк
+    for (let R = range.s.r; R <= range.e.r; ++R) {
+      const cellAddress = XLSX.utils.encode_cell({r: R, c: range.e.c});
+      if (ws[cellAddress] && ws[cellAddress].v === `${recipe.total} ${currencySymbol}`) {
+        ws[cellAddress].s = { // Стиль для итоговой суммы
+          font: { bold: true, sz: 14 },
+          fill: { fgColor: { rgb: "76FF03" } }
+        };
+      }
+    }
+    
     // Добавляем лист в книгу
-    XLSX.utils.book_append_sheet(wb, ws, recipe.name);
+    XLSX.utils.book_append_sheet(wb, ws, recipe.name.substring(0, 31)); // Ограничение длины имени листа
     
     // Экспортируем файл
     XLSX.writeFile(wb, `${recipe.name}.xlsx`);
@@ -1238,8 +1613,21 @@
 
   // Инициализация при загрузке
   document.addEventListener('DOMContentLoaded', () => {
+    // Устанавливаем язык по умолчанию
+    document.getElementById('languageSelect').value = currentLanguage;
+    document.getElementById('currencySelect').value = currentCurrency;
+    
+    // Обновляем тексты
+    updateTexts();
+    
+    // Устанавливаем плейсхолдер для названия рецепта
+    document.getElementById('recipeName').placeholder = translations[currentLanguage].recipeNamePlaceholder;
+    
+    // Загружаем сохраненные рецепты
     renderSaved();
-    addRow(); // Добавляем первую строку в основную таблицу
+    
+    // Добавляем первую строку в основную таблицу
+    addRow();
     
     // Валидация полей в реальном времени
     document.querySelectorAll('input.required').forEach(input => {
