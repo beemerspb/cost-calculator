@@ -94,26 +94,6 @@
       background-color: #76ff03 !important;
       color: #000 !important;
     }
-    .export-menu {
-      margin-top: 15px;
-      display: none;
-    }
-    .export-menu-content {
-      background-color: #333;
-      padding: 10px;
-      border-radius: 8px;
-      text-align: center;
-    }
-    .export-menu-item {
-      display: block;
-      color: #fff;
-      margin: 10px 0;
-      text-decoration: none;
-      font-weight: bold;
-    }
-    .export-menu-item:hover {
-      color: #4fc3f7;
-    }
     .saved-list {
       margin-top: 30px;
     }
@@ -131,6 +111,26 @@
     }
     .saved-item button {
       margin-left: 10px;
+    }
+    .export-menu {
+      margin-top: 15px;
+      display: inline-block;
+    }
+    .export-menu-content {
+      background-color: #333;
+      padding: 10px;
+      border-radius: 8px;
+      text-align: center;
+    }
+    .export-menu-item {
+      display: block;
+      color: #fff;
+      margin: 10px 0;
+      text-decoration: none;
+      font-weight: bold;
+    }
+    .export-menu-item:hover {
+      color: #4fc3f7;
     }
   </style>
 </head>
@@ -164,16 +164,8 @@
 </div>
 <button onclick="addRow()">Добавить строку</button>
 <button onclick="calculate()">Рассчитать</button>
+<button onclick="clearTable()">Очистить таблицу</button>
 <button onclick="saveResult()">Сохранить расчет</button>
-
-<!-- Export & Share Menu -->
-<div class="export-menu" id="exportMenu">
-  <div class="export-menu-content">
-    <button onclick="shareResult()">Поделиться</button>
-    <button onclick="exportToPDF()">Экспорт в PDF</button>
-    <button onclick="exportToExcel()">Экспорт в Excel</button>
-  </div>
-</div>
 
 <div class="saved-list" id="savedList"></div>
 
@@ -220,9 +212,8 @@
     });
 
     document.getElementById("totalCost").textContent = total.toFixed(2);
-    document.getElementById("totalRow").classList.add("highlight"); // Здесь происходит подсветка
+    document.getElementById("totalRow").classList.add("highlight"); 
     totalCalculated = true;
-    document.getElementById("exportMenu").style.display = 'inline-block';
   }
 
   function saveResult() {
@@ -244,6 +235,9 @@
     savedList.innerHTML = list.map(item => `
       <div class="saved-item">
         <span>${item.name}: ${item.total}</span>
+        <button onclick="shareResult('${item.name}', '${item.total}')">Поделиться</button>
+        <button onclick="exportRecipePDF('${item.name}', '${item.total}')">Экспорт в PDF</button>
+        <button onclick="exportRecipeExcel('${item.name}', '${item.total}')">Экспорт в Excel</button>
         <button onclick="deleteSaved('${item.name}')">❌</button>
       </div>
     `).join('');
@@ -256,35 +250,16 @@
     renderSaved();
   }
 
-  // Реализация экспорта в PDF
-  async function exportToPDF() {
-    const table = document.querySelector(".table-wrapper");
-    const canvas = await html2canvas(table);
-    const imgData = canvas.toDataURL("image/png");
-    const pdf = new jspdf.jsPDF();
-    pdf.addImage(imgData, "PNG", 10, 10, 180, 0);
-    pdf.save("recipe.pdf");
+  function clearTable() {
+    document.getElementById("costTable").querySelector("tbody").innerHTML = '';
+    document.getElementById("recipeName").value = '';
+    document.getElementById("totalCost").textContent = '0.00';
+    totalCalculated = false;
+    renderSaved();
   }
 
-  // Реализация экспорта в Excel
-  function exportToExcel() {
-    const table = document.getElementById("costTable");
-    const html = table.outerHTML;
-    const blob = new Blob([html], { type: 'application/vnd.ms-excel' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "recipe.xls";
-    a.click();
-    URL.revokeObjectURL(url);
-  }
-
-  // Реализация функции "Поделиться"
-  function shareResult() {
-    const recipeName = document.getElementById("recipeName").value;
-    const totalCost = document.getElementById("totalCost").textContent;
-    const message = `Рецепт: ${recipeName}\nИтого: ${totalCost}`;
-    
+  function shareResult(name, total) {
+    const message = `Рецепт: ${name}\nИтого: ${total}`;
     if (navigator.share) {
       navigator.share({
         title: 'Поделиться рецептом',
@@ -294,6 +269,26 @@
       alert("Функция 'Поделиться' не поддерживается в вашем браузере.");
     }
   }
+
+  function exportRecipePDF(name, total) {
+    const pdf = new jspdf.jsPDF();
+    pdf.text(`Рецепт: ${name}`, 10, 10);
+    pdf.text(`Итого: ${total}`, 10, 20);
+    pdf.save(`${name}.pdf`);
+  }
+
+  function exportRecipeExcel(name, total) {
+    const blob = new Blob([`Рецепт: ${name}\nИтого: ${total}`], { type: 'application/vnd.ms-excel' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${name}.xls`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  // Загружаем сохраненные рецепты при инициализации
+  window.onload = renderSaved;
 </script>
 </body>
 </html>
